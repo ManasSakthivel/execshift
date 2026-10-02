@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install (CPU-only PyTorch, pinned versions)
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+          grep -v '^torch==' requirements-lock.txt > req-ci.txt
+          pip install -r req-ci.txt
+          pip install -e . --no-deps
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Unit and scientific-integrity tests
+        run: pytest
+
+      - name: Pre-registration lock matches frozen code
+        run: python -c "from adexec.guard import check_lock; check_lock(); print('lock OK')"
+
+      - name: Reduced end-to-end pipeline (make reproduce-paper-fast)
+        env:
+          FAST_STEPS: "200000"
+        run: python scripts/reproduce_fast.py

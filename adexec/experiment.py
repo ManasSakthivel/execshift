@@ -23,12 +23,16 @@ from .policies import TWAP, Adaptive, AlmgrenChriss, Blend
 from .rl import PPOEnsemble, SingleMember
 from .sim import generate_market, rollout
 
-MODELS = ROOT / "models"
-RAW = ROOT / "results" / "raw"
+# overridable so the fast sanity pipeline never touches the authoritative artefacts
+MODELS = Path(os.environ.get("ADEXEC_MODELS_DIR", ROOT / "models"))
+RAW = Path(os.environ.get("ADEXEC_RAW_DIR", ROOT / "results" / "raw"))
+
+
+BASELINES_DIR = Path(os.environ.get("ADEXEC_BASELINES_DIR", ROOT / "results"))
 
 
 def baselines(impact_model: str) -> dict:
-    return json.loads((ROOT / "results" / f"baselines_{impact_model}.json").read_text())
+    return json.loads((BASELINES_DIR / f"baselines_{impact_model}.json").read_text())
 
 
 def member_paths(impact_model: str, replicate: int) -> list[Path]:

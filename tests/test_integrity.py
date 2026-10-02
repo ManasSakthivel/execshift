@@ -175,7 +175,7 @@ class TestAuthoritativeResults:
         report = (ROOT / "docs/FINAL_RESEARCH_REPORT.md").read_text()
         assert report == render_report(self.a), "report is stale: run `make report`"
         tables = ROOT / "results" / "tables.md"
-        from adexec.report import render_tables
+        from adexec.report_tables import render_tables
 
         assert tables.read_text() == render_tables(self.a), "tables are stale"
 

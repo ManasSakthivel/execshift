@@ -2,84 +2,88 @@
 
 > **Question:** What does this project add that existing work does not already establish?
 
-The evidence behind this statement is [`docs/LITERATURE_REVIEW.md`](docs/LITERATURE_REVIEW.md).
-We make no claim on the grounds that "nobody has done exactly this". Each claim below names
-the closest prior work and the specific difference.
+The evidence behind this statement is [`docs/LITERATURE_REVIEW.md`](docs/LITERATURE_REVIEW.md),
+including a second, adversarial search pass (section 8). The verdicts below were written
+**before** the confirmatory results were inspected. We make no claim on the grounds that "no
+identical implementation was found". Each verdict names the closest prior work.
 
-## What is NOT new, and we do not claim
+## Verdicts
 
-1. **Falling back from a learned policy to a heuristic when the learned policy is uncertain.**
-   This was proposed for deep-RL systems by Rotman, Schapira & Tamar (2020, adaptive
-   bitrate). It is the architecture of Simplex and Neural Simplex (Sha 2001; Phan et al.
-   2020) and of Recovery RL (Thananjeyan et al. 2021). For forecast-driven execution it was
-   studied by Irshad & Biswas (2026), who gate a return forecast with a conformal interval
-   and default to VWAP tracking.
-2. **RL beating TWAP/AC in-distribution** (Nevmyvaka et al. 2006; Hendricks & Wilcox 2014;
-   Ning et al. 2021; Lin & Beling 2020; Fang et al. 2021).
-3. **RL execution policies degrading or overfitting off-distribution** (Zhang et al. 2023;
-   Hambly et al. 2023).
-4. **OOD and uncertainty scores for neural networks and RL agents** (Lee et al. 2018;
-   Lakshminarayanan et al. 2017; Sedlmeier et al. 2020; Nasvytis et al. 2024).
-5. **Learning to defer** (Madras et al. 2018) and **per-instance algorithm selection**
-   (Rice 1976). RCG is an instance of both.
+| ID | Contribution | Verdict |
+|---|---|---|
+| C1 | Regret-centred formulation: predict the counterfactual regret of RL versus TWAP; gate = fall back iff predicted regret > 0 | **PLAUSIBLY NOVEL**, and **only** as an *empirical question in execution*. The gating *method* is ALREADY ESTABLISHED. |
+| C2 | Control-variate (martingale) regret labels and estimator | **METHODOLOGICAL RIGOR** |
+| C3 | Pre-registered leave-one-shift-family-out (LOFO) benchmark | **METHODOLOGICAL RIGOR** (the shift suite itself is an engineering contribution) |
+| C4 | Matched-budget random switching, rule and blend controls; ≥10 replicates; crossed bootstrap | **METHODOLOGICAL RIGOR** |
+| C5 | The empirical findings | **PLAUSIBLY NOVEL**, contingent on the confirmatory evidence (see below) |
 
-## What this project contributes
+**The central contribution is not a new gating method.**
+- Falling back from an uncertain RL policy to a conservative policy is established:
+  - Rotman, Schapira & Tamar 2020;
+  - Neggatu, Houssineau & Montana, AAMAS 2025;
+  - Simplex and Neural Simplex; Recovery RL;
+  - in trading, FineFT (Qin et al. 2025);
+  - in forecast-gated execution, Irshad & Biswas 2026.
+- "Defer iff the expected cost of the model exceeds the expert's" is cost-sensitive / post-hoc learning to defer (Mozannar & Sontag 2020; Narasimhan et al. 2022).
+- RCG is an instance of these.
 
-**C1. A regret-centred formulation of trusting RL in execution.**
-- Prior gates are scored on whether their signal flags OOD inputs (Rotman 2020; Sedlmeier
-  2020) or on forecast-interval coverage (Irshad & Biswas 2026).
-- We define the gate's target as the *counterfactual regret* of the deployed RL policy
-  relative to the fallback, on the same market (IS_RL − IS_TWAP, measured under common
-  random numbers). We evaluate every candidate signal by whether it predicts that regret:
-  Spearman correlation, AUROC/AUPRC for harmful episodes, calibration, and risk-coverage.
-- The proposed gate (RCG) falls back exactly when predicted regret is positive. This is the
-  Bayes decision for expected cost, so no threshold is tuned.
-- *Closest prior work:* Rotman et al. (2020) evaluate defaulting performance but select
-  signals by OOD-ness; Recovery RL predicts constraint violation, not cost regret.
+**The strongest remaining research question**, and the one this project is designed to answer, is empirical:
 
-**C2. A control-variate regret label.**
-- Realised per-episode regret is dominated by future price noise, which is unpredictable at
-  the decision time. Training on it teaches the gate noise.
-- We subtract the zero-mean price-innovation component, which is exact by the tower
-  property. This gives an unbiased, roughly 2× lower-variance estimate of each episode's
-  expected regret.
-- It is used for gate labels and as the primary estimator of expected IS. Realised-IS
-  results are reported for every comparison.
-- We did not find this device used for training or evaluating deferral or fallback gates in
-  the RL-execution literature.
+> In RL trade execution, is the regret of trusting the RL policy relative to TWAP
+> predictable from pre-trade observables and policy uncertainty, under held-out kinds of
+> natural market shift? Does predictability differ between covariate shifts (visible in
+> observations) and concept shifts (invisible)?
 
-**C3. A pre-registered, leave-one-shift-family-out benchmark for selective intervention in execution.**
-- Twelve shift conditions in six families (volatility, liquidity drought, alpha decay,
-  hidden impact, latency, order size), anchored to documented market episodes and frozen
-  before any policy was trained.
-- Every gate is fitted with the *test family held out*, so each shifted test condition is an
-  unseen kind of shift.
-- The benchmark separates covariate shifts, which are visible in observations, from concept
-  shifts, which are not (alpha decay, hidden impact, latency). The second kind is where
-  OOD-based gating is expected to fail.
-- *Closest prior work:* Zhang et al. (2023) study generalisation of a single execution
-  policy; Nasvytis et al. (2024) criticise artificial RL-OOD benchmarks but do not address
-  execution.
+## Per-claim detail
 
-**C4. Matched-budget controls and a design that tests whether the gate's decisions beat chance.**
-- The gate is compared with a rule gate (A9), a policy blend (A3), and random switching with
-  the same fallback rate, per condition and replicate (A10, evaluated in exact expectation).
-- It is also compared with always-TWAP, OOD-only and ensemble-only gates.
-- The analysis uses ≥10 independent RL training replicates, each a 5-member ensemble, and a
-  crossed bootstrap over replicates × episodes.
-- *Closest prior work:* the execution studies listed above use 1–5 seeds and no
-  matched-budget random control.
+### C1: PLAUSIBLY NOVEL (empirical question only)
 
-**C5. Empirical findings in a validated synthetic market,** reported whether positive or
-negative: the size of RL's in-distribution edge over tuned baselines, which natural shifts
-erode it, whether uncertainty predicts regret, and whether gating beats the controls. They
-are stated, with their limits, in `docs/FINAL_RESEARCH_REPORT.md` and
-`FINAL_STANFORD_READINESS_REPORT.md`.
+**Closest prior work**
+- Neggatu et al. (AAMAS 2025): an uncertainty-thresholded RL / behaviour-cloning switch.
+- FineFT (2025): VAE-OOD routing to a conservative trading policy.
+- Rotman et al. (2020): uncertainty-triggered defaulting.
+- Schneider et al. (2026): evaluate uncertainty by decision utility.
+- Mozannar & Sontag (2020) and Narasimhan et al. (2022): cost-sensitive deferral.
 
-## Scope limits on the novelty claim
+**Precise difference**
+- Prior RL and trading gates threshold an *uncertainty or OOD* score. They report the *aggregate* performance of the switched system.
+- They do not test, episode by episode, whether the score ranks the *counterfactual regret against the specific fallback*. Common random numbers make that regret measurable here.
+- They do not test it on *held-out kinds* of shift, against a random control with the *same fallback budget*.
 
-- Every result is from a **synthetic** simulator (validated against stylised facts) and
-  holds conditional on its impact models. Nothing here is evidence about live markets.
-- C1–C4 are methodological contributions to *how* the question is posed and tested. If the
-  confirmatory results are negative, the contribution is the negative result plus the
-  benchmark, not a working method.
+**Why it matters**
+- A score that rises under shift but does not track regret leads to harmful fallbacks: it switches off RL exactly where RL is still better.
+- Aggregate gains can come from the fallback rate alone, not from *which* episodes were switched. The matched random control (A10) isolates that.
+
+**Evidence required**
+- H3: rank correlation and AUROC of the score against regret, with CIs excluding chance on the pooled test.
+- H4/H5: the gate must beat always-RL and the matched random control. Otherwise the score's ranking has no decision value.
+- If H3/H4 fail, C1 survives only as a **negative empirical answer** to the question above. That is still informative, but it is not a method contribution.
+
+### C2: METHODOLOGICAL RIGOR
+
+- **Closest prior work:** Henderson & Glynn (2002), martingale control variates; their standard use in Monte Carlo finance.
+- **What we do:** apply the same device to execution P&L. We subtract `Σ_t q_{t+1}·(innovation_{t+1})` and the latency-bridge term. Both are products of decision-time-measurable inventory and post-decision innovations, so each term has conditional mean zero.
+- **What is ours:** using the result as the gate's training label and as the estimator for paired comparisons. The variance reduction is **measured** on the final data and reported with uncertainty in `docs/FINAL_RESEARCH_REPORT.md`. We claim only the reduction we observe.
+
+### C3: METHODOLOGICAL RIGOR
+
+- **Closest prior work:** leave-one-domain-out evaluation (Gulrajani & Lopez-Paz 2021, DomainBed).
+- **What we do:** apply it to six execution shift families, which were frozen before training.
+- **Value:** it prevents a gate from being credited for detecting shift types it was fitted on. This is rigor, not a new idea.
+
+### C4: METHODOLOGICAL RIGOR
+
+- Matched random controls, ≥10 replicates (Agarwal et al. 2021; Henderson et al. 2018), crossed bootstrap (Owen 2007) and Holm correction are good practice.
+- They distinguish this study from the 1-5-seed execution-RL studies we reviewed. They are not a contribution to knowledge in themselves.
+
+### C5: PLAUSIBLY NOVEL (contingent)
+
+- **What it would mean:** a quantified, pre-registered answer to the question above in a validated synthetic market. That covers the size and robustness of RL's in-distribution edge over *tuned* baselines (including a feature-driven heuristic), which natural shifts erode it, and whether uncertainty and OOD signals predict the resulting regret.
+- **Closest prior work:** Zhang et al. (2023) on generalisation; FineFT on OOD routing.
+- **Difference:** neither reports whether uncertainty predicts regret against the fallback, nor separates covariate from concept shift.
+- **Evidence required:** the confirmatory results themselves. Every finding claimed in the report must be backed by a pre-registered or explicitly exploratory analysis, and labelled as such.
+
+## Scope limits
+
+- Every result is from a **synthetic** simulator (validated against stylised facts) and holds conditional on its impact models. Nothing here is evidence about live markets.
+- The contribution is **an empirical answer, plus a rigorous benchmark**, to a narrow, well-posed question. It is not a new algorithm.

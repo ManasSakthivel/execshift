@@ -15,3 +15,5 @@ scratch/
 # Secrets / OS
 .env
 .DS_Store
+models_fast/
+results/fast/

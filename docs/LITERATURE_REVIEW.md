@@ -276,4 +276,80 @@ this project.
 | A regret-calibrated gate beats rule, blend and matched-budget random-switching controls on a pre-registered endpoint, on *held-out shift families* | **Not found.** |
 | Shifts that leave observations unchanged (concept shift: alpha decay, hidden impact) defeat OOD-based gates in execution | **Not found** as a measured result in execution. |
 
+## 8. Adversarial novelty audit (second pass, Oct 2026)
+
+**Why a second pass.** We ran a second, deliberately hostile search aimed at each claimed
+contribution. It ran while the confirmatory statistics were computing, and before any test
+result was inspected.
+
+**Queries:** regret-based selective prediction; regret-based / cost-sensitive learning to
+defer; counterfactual regret for policy arbitration; RL policy deferral and evaluation-time
+switching; execution-policy arbitration; uncertainty-to-regret prediction; uncertainty-aware
+and conformal execution; OOD gating for RL; safe fallback policies; concept-shift-aware RL;
+latent impact shift; control-variate regret estimation; leave-one-domain-out evaluation;
+selective prediction under shift in finance.
+
+The second pass found prior work **closer** than the first pass:
+
+**Neggatu, Houssineau & Montana (2025)**†, *Evaluation-time policy switching for offline reinforcement learning*, AAMAS 2025.
+- What it does: at evaluation time, chooses between an RL agent and a behaviour-cloning fallback, using the ensemble's epistemic uncertainty plus a data-derived aleatoric measure.
+- → The general mechanism of "switch from RL to a conservative fallback when an ensemble is uncertain" is **established**, including for deployment. Their switch is uncertainty-thresholded, not regret-regressed. Their domain is offline-RL benchmarks, not execution.
+
+**Qin et al. (2025)**†, *FineFT: Efficient and risk-aware ensemble RL for futures trading*, arXiv:2512.23773.
+- What it does: VAEs trained on market states mark each learner's "capability boundary". Outside it, the system routes to a conservative policy.
+- Results: lower drawdown, about 40% risk reduction relative to 12 baselines.
+- → OOD-guided fallback **in trading** is established. The paper does not test whether the OOD signal predicts the *regret relative to the fallback*. It has no matched-budget random-switching control and no held-out shift families.
+
+**"Learning to trade with preferences: interpretable execution via mixture-of-experts"** (ICAIF 2025, ACM DOI 10.1145/3768292.3770390)†.
+- What it does: a state-dependent mixture of deterministic execution strategies, which can lean on TWAP-like experts.
+- → Close to our A3 blend control and to per-state arbitration in execution.
+
+**Mozannar & Sontag (2020)**, ICML; **Narasimhan et al. (2022)**, *Post-hoc estimators for learning to defer*, NeurIPS; **Mao et al. (2023)**, two-stage deferral, NeurIPS.
+- What they do: cost-sensitive, Bayes-consistent learning to defer, including post-hoc rejectors that compare the estimated cost of the model with that of the expert.
+- → **RCG is a post-hoc, cost-sensitive learning-to-defer rule.** Its estimand: defer iff E[cost_model − cost_expert | x] > 0. The method is **established**; only its application to sequential execution policies is new here.
+
+**Schneider, Rochussen, Stiller & Fortuin (2026)**†, *Decision-aligned evaluation of uncertainty quantification*, arXiv:2606.26990.
+- What it does: argues that UQ should be evaluated by downstream decision utility, not by calibration or NLL, and proposes utility-aligned proper scoring rules.
+- → The principle behind C1 (judge uncertainty by the regret it predicts) is **established** in general.
+
+**Henderson & Glynn (2002)**†, *Approximating martingales for variance reduction in Markov process simulation*, Math. of OR 27(2).
+- What it does: adds a zero-mean martingale as an internal control variate in simulation; with the "perfect" martingale the variance is zero.
+- Related: martingale and delta-hedge control variates are standard in Monte Carlo option pricing.
+- → C2 is a **direct application** of this established technique to execution-regret labels.
+
+**Gulrajani & Lopez-Paz (2021)**†, *In search of lost domain generalization* (DomainBed), ICLR.
+- What it does: defines leave-one-domain-out evaluation and model selection.
+- → Our LOFO protocol is this established design, applied to shift families. It is not a new evaluation idea.
+
+**Agarwal et al. (2021)** and **Henderson et al. (2018)** (seed variance); **Owen (2007)** (crossed bootstrap).
+- → The statistical design (≥10 replicates, crossed resampling, matched controls) is good practice, not a contribution.
+
+**Further related work:**
+- **Thananjeyan et al. (2021)** (Recovery RL);
+- **Laroche et al. (2019)** (SPIBB: state-wise fallback to the baseline where data are thin);
+- **JIRL** (arXiv:2209.09446): switches control between a baseline and RL to limit *baseline regret* during training;
+- cost-aware conformal deferral under distribution shift in clinical triage (Scientific Reports 2026);
+- uncertainty-guided fallback for RL in power-distribution control (arXiv:2609.03308).
+- → None of these combines (i) a learned *execution* policy, (ii) counterfactual regret against a classical schedule as the prediction target, (iii) evaluation on *held-out kinds* of natural market shift, and (iv) a matched-budget random control. Each of those components, taken alone, is established.
+
+### Audit verdicts
+
+Each contribution is classified by its closest prior work. Full reasoning, and the evidence each claim would need, is in [`NOVELTY_STATEMENT.md`](../NOVELTY_STATEMENT.md).
+
+| Contribution | Verdict |
+|---|---|
+| C1. Regret-centred gating / RCG | The **method** is established: cost-sensitive learning to defer and uncertainty-based RL switching. Only the **empirical question** of whether uncertainty signals predict counterfactual execution regret against TWAP under held-out natural shift families is **PLAUSIBLY NOVEL**. |
+| C2. Control-variate regret label | **METHODOLOGICAL RIGOR** (Henderson & Glynn 2002) |
+| C3. LOFO shift benchmark | **METHODOLOGICAL RIGOR** (leave-one-domain-out). The shift suite itself is an engineering contribution. |
+| C4. Matched-budget controls, crossed bootstrap, ≥10 replicates | **METHODOLOGICAL RIGOR** |
+| C5. Empirical findings | **PLAUSIBLY NOVEL**, contingent on the confirmatory evidence |
+
+**Strongest remaining research question:**
+
+> *In RL trade execution, is the regret of trusting the RL policy (relative to TWAP)
+> epistemically predictable from pre-trade observables, and does predictability differ
+> between covariate shifts (visible in observations) and concept shifts (invisible)?*
+
+That question is not answered by the work above, and our pre-registered H3 tests it directly.
+
 The novelty claim we make, and its limits, is in [`NOVELTY_STATEMENT.md`](../NOVELTY_STATEMENT.md).

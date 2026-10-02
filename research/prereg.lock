@@ -1,0 +1,17 @@
+{
+ "locked_at": "2026-10-02T05:01:48.142020+00:00",
+ "preregistration_sha256": "2abf320fda1f2d0487cb7ad5d450112f5017601e85da3b2b5ab997efa90aec46",
+ "files": {
+  "research/PREREGISTRATION.md": "2abf320fda1f2d0487cb7ad5d450112f5017601e85da3b2b5ab997efa90aec46",
+  "adexec/config.py": "57ed8b3ed59923b820c8d1a13156082ec1fdbaf5f9b351ee933674bb599bce02",
+  "adexec/sim.py": "b6a396f40c1574de9505900552cd5e71145ea045ef10b25985eeb5177dc00791",
+  "adexec/policies.py": "10d8df74c98908317236fe799a5c04787cea3f2b659e592f5bebefdfbea4b6c6",
+  "adexec/rl.py": "65d4803ca618940c6799ab7703f284308a0b705ad85177bd25fa98b3179329a8",
+  "adexec/features.py": "a1be54fe69bf34eef3f7c7283b32ea153db1ad874191f1b8a5ee19258ab78d9c",
+  "adexec/gates.py": "e09339d18d7ce573adb97624729b842cc8b1af9bcc5a57a7e9b8f7d216a95be9",
+  "adexec/stats.py": "7206d42c1d578e56e86c3c7464b3b533eee6345321e6dbb09a4079ccaf28bb77",
+  "adexec/analysis.py": "fa13414f733c1702a0fa005f7082dc45f5c25ccc6868b0d5150803d2f0295a21",
+  "adexec/tuning.py": "f63411eaf2402b717adbac7f82ffe4f95f064944ab1669ba99824aa9cbe09ac8"
+ },
+ "robustness_replicates": 10
+}

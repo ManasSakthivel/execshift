@@ -15,10 +15,15 @@ WORKERS ?= $(shell python3 -c "import os; print(max(1, (os.cpu_count() or 2) - 1
         reproduce-paper reproduce-paper-fast clean-generated
 
 .venv/bin/python:
-	python3 -m venv .venv || uv venv --python 3.12 .venv
-	$(PY) -m pip install --upgrade pip
-	$(PY) -m pip install -r requirements-lock.txt
-	$(PY) -m pip install -e . --no-deps
+	@if command -v uv >/dev/null 2>&1; then \
+	  uv venv --python 3.12 .venv && \
+	  uv pip install --python .venv/bin/python -r requirements-lock.txt && \
+	  uv pip install --python .venv/bin/python -e . --no-deps; \
+	else \
+	  python3.12 -m venv .venv && \
+	  .venv/bin/python -m pip install -r requirements-lock.txt && \
+	  .venv/bin/python -m pip install -e . --no-deps; \
+	fi
 
 install: .venv/bin/python
 

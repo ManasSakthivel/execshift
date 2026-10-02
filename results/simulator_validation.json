@@ -1,0 +1,356 @@
+{
+ "sqrt": [
+  {
+   "check": "Heavy tails: excess kurtosis of 30 s returns",
+   "value": 14.8204,
+   "target_low": 3.0,
+   "target_high": 50.0,
+   "status": "PASS",
+   "source": "Cont (2001) SF-3; intraday excess kurtosis >> 0"
+  },
+  {
+   "check": "Heavy tails: Hill tail index of |r| (top 2%)",
+   "value": 3.2919,
+   "target_low": 2.0,
+   "target_high": 5.0,
+   "status": "PASS",
+   "source": "Gopikrishnan et al. (1999) 'inverse cubic law', alpha ~ 3 (2-5)"
+  },
+  {
+   "check": "Aggregational Gaussianity: kurtosis(30 min) / kurtosis(30 s)",
+   "value": 0.0267,
+   "target_low": 0.0,
+   "target_high": 0.5,
+   "status": "PASS",
+   "source": "Cont (2001) SF-4"
+  },
+  {
+   "check": "No linear autocorrelation: max |ACF(r)| at lags 1-60",
+   "value": 0.0166,
+   "target_low": 0.0,
+   "target_high": 0.05,
+   "status": "PASS",
+   "source": "Cont (2001) SF-1"
+  },
+  {
+   "check": "Volatility clustering: ACF(|r|) at lag 1",
+   "value": 0.101,
+   "target_low": 0.05,
+   "target_high": 0.5,
+   "status": "PASS",
+   "source": "Cont (2001) SF-7"
+  },
+  {
+   "check": "Volatility clustering: ACF(|r|) at lag 20 (10 min)",
+   "value": 0.0489,
+   "target_low": 0.02,
+   "target_high": 0.4,
+   "status": "PASS",
+   "source": "Cont (2001) SF-7, slow decay"
+  },
+  {
+   "check": "Volume-volatility correlation corr(log V, |r|)",
+   "value": 0.5346,
+   "target_low": 0.1,
+   "target_high": 0.7,
+   "status": "PASS",
+   "source": "Cont (2001) SF-10; Karpoff (1987)"
+  },
+  {
+   "check": "Spread-volatility correlation corr(log s, log sigma)",
+   "value": 0.6506,
+   "target_low": 0.1,
+   "target_high": 0.9,
+   "status": "PASS",
+   "source": "Bouchaud et al. (2018) ch. 12; Wyart et al. (2008)"
+  },
+  {
+   "check": "Depth-volatility correlation corr(log depth, log sigma)",
+   "value": -0.5305,
+   "target_low": -0.9,
+   "target_high": -0.05,
+   "status": "PASS",
+   "source": "Bouchaud et al. (2018); liquidity withdraws in volatile periods"
+  },
+  {
+   "check": "Liquidity persistence: ACF(log depth) lag 1",
+   "value": 0.8166,
+   "target_low": 0.5,
+   "target_high": 0.99,
+   "status": "PASS",
+   "source": "Liquidity is persistent but mean-reverting (Bouchaud et al. 2018)"
+  },
+  {
+   "check": "Liquidity variation: coefficient of variation of depth",
+   "value": 0.4114,
+   "target_low": 0.2,
+   "target_high": 1.0,
+   "status": "PASS",
+   "source": "Intraday depth CV of order 0.3-0.6 in large caps"
+  },
+  {
+   "check": "Signal predictive R^2 for next 30 s return",
+   "value": 0.0128,
+   "target_low": 0.005,
+   "target_high": 0.05,
+   "status": "PASS",
+   "source": "Cont, Kukanov & Stoikov (2014); Kolm et al. (2023): low single-digit %"
+  },
+  {
+   "check": "Impact concavity: log-log slope of cost vs participation [sqrt]",
+   "value": 0.5025,
+   "target_low": 0.4,
+   "target_high": 0.75,
+   "status": "PASS",
+   "source": "Almgren et al. (2005) 0.6; Toth et al. (2011) 0.5 (square-root law)"
+  },
+  {
+   "check": "Impact level: implied square-root-law prefactor Y at 8% participation",
+   "value": 0.6969,
+   "target_low": 0.3,
+   "target_high": 1.5,
+   "status": "PASS",
+   "source": "Toth et al. (2011); Bouchaud et al. (2018): Y ~ 0.5-1"
+  }
+ ],
+ "linear": [
+  {
+   "check": "Heavy tails: excess kurtosis of 30 s returns",
+   "value": 14.8204,
+   "target_low": 3.0,
+   "target_high": 50.0,
+   "status": "PASS",
+   "source": "Cont (2001) SF-3; intraday excess kurtosis >> 0"
+  },
+  {
+   "check": "Heavy tails: Hill tail index of |r| (top 2%)",
+   "value": 3.2919,
+   "target_low": 2.0,
+   "target_high": 5.0,
+   "status": "PASS",
+   "source": "Gopikrishnan et al. (1999) 'inverse cubic law', alpha ~ 3 (2-5)"
+  },
+  {
+   "check": "Aggregational Gaussianity: kurtosis(30 min) / kurtosis(30 s)",
+   "value": 0.0267,
+   "target_low": 0.0,
+   "target_high": 0.5,
+   "status": "PASS",
+   "source": "Cont (2001) SF-4"
+  },
+  {
+   "check": "No linear autocorrelation: max |ACF(r)| at lags 1-60",
+   "value": 0.0166,
+   "target_low": 0.0,
+   "target_high": 0.05,
+   "status": "PASS",
+   "source": "Cont (2001) SF-1"
+  },
+  {
+   "check": "Volatility clustering: ACF(|r|) at lag 1",
+   "value": 0.101,
+   "target_low": 0.05,
+   "target_high": 0.5,
+   "status": "PASS",
+   "source": "Cont (2001) SF-7"
+  },
+  {
+   "check": "Volatility clustering: ACF(|r|) at lag 20 (10 min)",
+   "value": 0.0489,
+   "target_low": 0.02,
+   "target_high": 0.4,
+   "status": "PASS",
+   "source": "Cont (2001) SF-7, slow decay"
+  },
+  {
+   "check": "Volume-volatility correlation corr(log V, |r|)",
+   "value": 0.5346,
+   "target_low": 0.1,
+   "target_high": 0.7,
+   "status": "PASS",
+   "source": "Cont (2001) SF-10; Karpoff (1987)"
+  },
+  {
+   "check": "Spread-volatility correlation corr(log s, log sigma)",
+   "value": 0.6506,
+   "target_low": 0.1,
+   "target_high": 0.9,
+   "status": "PASS",
+   "source": "Bouchaud et al. (2018) ch. 12; Wyart et al. (2008)"
+  },
+  {
+   "check": "Depth-volatility correlation corr(log depth, log sigma)",
+   "value": -0.5305,
+   "target_low": -0.9,
+   "target_high": -0.05,
+   "status": "PASS",
+   "source": "Bouchaud et al. (2018); liquidity withdraws in volatile periods"
+  },
+  {
+   "check": "Liquidity persistence: ACF(log depth) lag 1",
+   "value": 0.8166,
+   "target_low": 0.5,
+   "target_high": 0.99,
+   "status": "PASS",
+   "source": "Liquidity is persistent but mean-reverting (Bouchaud et al. 2018)"
+  },
+  {
+   "check": "Liquidity variation: coefficient of variation of depth",
+   "value": 0.4114,
+   "target_low": 0.2,
+   "target_high": 1.0,
+   "status": "PASS",
+   "source": "Intraday depth CV of order 0.3-0.6 in large caps"
+  },
+  {
+   "check": "Signal predictive R^2 for next 30 s return",
+   "value": 0.0128,
+   "target_low": 0.005,
+   "target_high": 0.05,
+   "status": "PASS",
+   "source": "Cont, Kukanov & Stoikov (2014); Kolm et al. (2023): low single-digit %"
+  },
+  {
+   "check": "Impact concavity: log-log slope of cost vs participation [linear]",
+   "value": 1.0023,
+   "target_low": 0.8,
+   "target_high": 1.1,
+   "status": "PASS",
+   "source": "Almgren et al. (2005) 0.6; Toth et al. (2011) 0.5 (square-root law)"
+  },
+  {
+   "check": "Impact level: implied square-root-law prefactor Y at 8% participation",
+   "value": 0.5914,
+   "target_low": 0.3,
+   "target_high": 1.5,
+   "status": "PASS",
+   "source": "Toth et al. (2011); Bouchaud et al. (2018): Y ~ 0.5-1"
+  }
+ ],
+ "transient": [
+  {
+   "check": "Heavy tails: excess kurtosis of 30 s returns",
+   "value": 14.8204,
+   "target_low": 3.0,
+   "target_high": 50.0,
+   "status": "PASS",
+   "source": "Cont (2001) SF-3; intraday excess kurtosis >> 0"
+  },
+  {
+   "check": "Heavy tails: Hill tail index of |r| (top 2%)",
+   "value": 3.2919,
+   "target_low": 2.0,
+   "target_high": 5.0,
+   "status": "PASS",
+   "source": "Gopikrishnan et al. (1999) 'inverse cubic law', alpha ~ 3 (2-5)"
+  },
+  {
+   "check": "Aggregational Gaussianity: kurtosis(30 min) / kurtosis(30 s)",
+   "value": 0.0267,
+   "target_low": 0.0,
+   "target_high": 0.5,
+   "status": "PASS",
+   "source": "Cont (2001) SF-4"
+  },
+  {
+   "check": "No linear autocorrelation: max |ACF(r)| at lags 1-60",
+   "value": 0.0166,
+   "target_low": 0.0,
+   "target_high": 0.05,
+   "status": "PASS",
+   "source": "Cont (2001) SF-1"
+  },
+  {
+   "check": "Volatility clustering: ACF(|r|) at lag 1",
+   "value": 0.101,
+   "target_low": 0.05,
+   "target_high": 0.5,
+   "status": "PASS",
+   "source": "Cont (2001) SF-7"
+  },
+  {
+   "check": "Volatility clustering: ACF(|r|) at lag 20 (10 min)",
+   "value": 0.0489,
+   "target_low": 0.02,
+   "target_high": 0.4,
+   "status": "PASS",
+   "source": "Cont (2001) SF-7, slow decay"
+  },
+  {
+   "check": "Volume-volatility correlation corr(log V, |r|)",
+   "value": 0.5346,
+   "target_low": 0.1,
+   "target_high": 0.7,
+   "status": "PASS",
+   "source": "Cont (2001) SF-10; Karpoff (1987)"
+  },
+  {
+   "check": "Spread-volatility correlation corr(log s, log sigma)",
+   "value": 0.6506,
+   "target_low": 0.1,
+   "target_high": 0.9,
+   "status": "PASS",
+   "source": "Bouchaud et al. (2018) ch. 12; Wyart et al. (2008)"
+  },
+  {
+   "check": "Depth-volatility correlation corr(log depth, log sigma)",
+   "value": -0.5305,
+   "target_low": -0.9,
+   "target_high": -0.05,
+   "status": "PASS",
+   "source": "Bouchaud et al. (2018); liquidity withdraws in volatile periods"
+  },
+  {
+   "check": "Liquidity persistence: ACF(log depth) lag 1",
+   "value": 0.8166,
+   "target_low": 0.5,
+   "target_high": 0.99,
+   "status": "PASS",
+   "source": "Liquidity is persistent but mean-reverting (Bouchaud et al. 2018)"
+  },
+  {
+   "check": "Liquidity variation: coefficient of variation of depth",
+   "value": 0.4114,
+   "target_low": 0.2,
+   "target_high": 1.0,
+   "status": "PASS",
+   "source": "Intraday depth CV of order 0.3-0.6 in large caps"
+  },
+  {
+   "check": "Signal predictive R^2 for next 30 s return",
+   "value": 0.0128,
+   "target_low": 0.005,
+   "target_high": 0.05,
+   "status": "PASS",
+   "source": "Cont, Kukanov & Stoikov (2014); Kolm et al. (2023): low single-digit %"
+  },
+  {
+   "check": "Impact concavity: log-log slope of cost vs participation [transient]",
+   "value": 0.5025,
+   "target_low": 0.4,
+   "target_high": 0.75,
+   "status": "PASS",
+   "source": "Almgren et al. (2005) 0.6; Toth et al. (2011) 0.5 (square-root law)"
+  },
+  {
+   "check": "Impact level: implied square-root-law prefactor Y at 8% participation",
+   "value": 0.6901,
+   "target_low": 0.3,
+   "target_high": 1.5,
+   "status": "PASS",
+   "source": "Toth et al. (2011); Bouchaud et al. (2018): Y ~ 0.5-1"
+  }
+ ],
+ "not_modelled": [
+  "Intraday U-shaped volume/volatility seasonality (single 30-min window, no time of day)",
+  "Leverage effect (return-volatility asymmetry)",
+  "Long memory of volatility beyond ~30 min (log-vol is AR(1): exponential, not power-law, decay)",
+  "Discrete tick size, queue dynamics and limit-order fills (execution is by marketable orders against a parametric cost model)",
+  "Reaction of other market participants to our orders beyond the impact model"
+ ],
+ "kurtosis_by_aggregation": {
+  "1": 14.820433058218809,
+  "10": 2.1722659925134993,
+  "60": 0.3953845936099974
+ }
+}

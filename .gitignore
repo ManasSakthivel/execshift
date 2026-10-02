@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Regenerable artefacts (hashes recorded in results/rl_manifest.json)
+models/
+results/raw/
+scratch/
+
+# Secrets / OS
+.env
+.DS_Store

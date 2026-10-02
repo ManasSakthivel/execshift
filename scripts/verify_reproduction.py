@@ -14,6 +14,7 @@ import json
 import sys
 
 ABS_TOL = 0.02
+MISSING = object()
 
 
 def walk(a, b, path=""):
@@ -24,7 +25,7 @@ def walk(a, b, path=""):
             hw = (a["ci_high"] - a["ci_low"]) / 2
         for k in a:
             if k not in b:
-                yield f"{path}/{k}", a[k], None, hw
+                yield f"{path}/{k}", a[k], MISSING, hw
                 continue
             if isinstance(a[k], (dict, list)):
                 yield from walk(a[k], b[k], f"{path}/{k}")
@@ -41,8 +42,12 @@ def main(ref_path, new_path):
     fails, checked = [], 0
     for path, a, b, hw in walk(ref, new):
         leaf = path.rsplit("/", 1)[-1]
-        if b is None:
+        if b is MISSING:
             fails.append(f"missing {path}")
+        elif a is None or b is None:
+            checked += 1
+            if a is not b:
+                fails.append(f"null mismatch {path}: {a} -> {b}")
         elif isinstance(a, bool) or leaf in ("supported", "reject"):
             checked += 1
             if a != b:

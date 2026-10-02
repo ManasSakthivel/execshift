@@ -1,0 +1,10 @@
+{
+ "reproduction_fast": "PASS",
+ "reproduction": "PASS",
+ "hardware": "Apple M4 Pro, 14 CPU cores, 48 GB RAM, macOS (Darwin 25.6.0); Python 3.12.14, torch 2.14.1, numpy 2.5.3, SB3 2.9.0; CPU only",
+ "ci": "NOT RUN (remote)",
+ "push": "NOT PUSHED",
+ "reproduction_detail": "Clean clone, 76.5 min wall on 14 cores: 150/150 identical PPO weights, authoritative.json byte-identical, verifier 1,063 checks with 0 outside tolerance, test suite passes; see docs/REPRODUCIBILITY.md",
+ "ci_detail": "Not pushed, so GitHub Actions has not run. Every CI step passes locally: ruff, pytest, lock check, reduced pipeline.",
+ "push_detail": "Withheld per instruction: push only after the scientific gate passes; the gate is BLOCKED on categories 7 and 8."
+}

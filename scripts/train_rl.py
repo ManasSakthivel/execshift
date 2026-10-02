@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import time
+import zipfile
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -13,13 +14,18 @@ from adexec.experiment import MODELS
 from adexec.rl import PPO_KWARGS, TOTAL_STEPS, member_seed, train_member
 
 
+def weights_sha256(p: Path) -> str:
+    """Hash of the network weights only (the zip also stores a save timestamp)."""
+    return hashlib.sha256(zipfile.ZipFile(p).read("policy.pth")).hexdigest()
+
+
 def _job(a):
     im, r, j, steps = a
     t0 = time.time()
     p = train_member(r, j, MODELS, im, total_steps=steps)
     return {"impact_model": im, "replicate": r, "member": j, "seed": member_seed(r, j),
             "steps": steps, "path": p.name, "seconds": round(time.time() - t0, 1),
-            "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+            "weights_sha256": weights_sha256(p)}
 
 
 def main():
@@ -40,7 +46,7 @@ def main():
         p = MODELS / f"{im}_r{r:02d}_m{j}.zip"
         manifest.append({"impact_model": im, "replicate": r, "member": j,
                          "seed": member_seed(r, j), "steps": steps, "path": p.name,
-                         "sha256": hashlib.sha256(p.read_bytes()).hexdigest()})
+                         "weights_sha256": weights_sha256(p)})
     out = Path("results") / "rl_manifest.json"
     out.parent.mkdir(exist_ok=True)
     old = json.loads(out.read_text()) if out.exists() else {"members": []}

@@ -14,8 +14,8 @@ deployability.
 
 ## Question
 
-An RL execution agent beats classical schedules on the markets it was trained on. Under
-distribution shift it may not.
+In this study's synthetic market, an RL execution agent beats tuned classical schedules on
+the kind of market it was trained on. Under distribution shift it may not.
 
 Can an uncertainty-aware gate decide, at order arrival, when to **trust RL** and when to
 **fall back to TWAP**? Specifically: does uncertainty predict the *counterfactual regret*
@@ -78,7 +78,7 @@ make reproduce-paper        # full paper from a clean clone (~2-4 h on 14 cores)
 make test lint              # unit + scientific-integrity tests, ruff
 ```
 
-Dependencies are pinned in `requirements-lock.txt` (Python 3.12). Checkpoints are not
+A clean-clone full reproduction was byte-identical to the committed results ([`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md)). Dependencies are pinned in `requirements-lock.txt` (Python 3.12). Checkpoints are not
 committed; their SHA-256 hashes are in `results/rl_manifest.json`.
 
 ## Repository map

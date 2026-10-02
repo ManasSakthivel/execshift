@@ -8,7 +8,6 @@
 
 - **7. Uncertainty predicts regret**: Statistically yes but practically weak (ρ = +0.108, AUROC 0.542); fails under transient impact; raw uncertainty signals (ensemble, OOD) do not predict regret.
 - **8. Gate beats matched controls**: H4 FAIL (-0.013 [-0.024, -0.004] bp); H5 passes on the primary model only, with a negligible margin over random switching (-0.005 [-0.010, -0.001] bp); H5 fails under linear and transient impact.
-- **19. Reproducible by another researcher**: Clean-clone full reproduction: NOT RUN; fast pipeline: NOT RUN (see section below).
 
 This cannot be fixed without changing pre-registered hypotheses, endpoints, shifts or thresholds, which would be result-driven. Reaching a different status requires a **new** pre-registered study. The most promising one would measure the fallback headroom on real data and use in-episode (mid-order) evidence to catch concept shift.
 
@@ -65,14 +64,14 @@ Full numbers, CIs, seeds, baselines, shift, uncertainty-regret, gate, robustness
 | 16 | Could results be caused by the fallback choice? | **PASS** | Disclosed: TWAP fallback plus the bounded residual action space likely limit headroom; AC ≈ TWAP; the ADAPT fallback was not studied (limitation). |
 | 17 | Novelty survives 2026 literature | **PASS** | Only after narrowing: AAMAS-2025 evaluation-time switching, FineFT (2025) and Irshad & Biswas (2026) pre-empt the method; the remaining claim is empirical. |
 | 18 | Negative results reported | **PASS** | H4 failure, weak H3, H6 impact failure, the RL ≈ ADAPT tie, RL tail risk and the OOD-gate failure mode are all in the abstract and §17. |
-| 19 | Reproducible by another researcher | **BLOCKED** | Clean-clone full reproduction: NOT RUN; fast pipeline: NOT RUN (see section below). |
+| 19 | Reproducible by another researcher | **PASS** | Clean-clone full reproduction: PASS; fast pipeline: PASS (Clean clone, 76.5 min wall on 14 cores: 150/150 identical PPO weights, authoritative.json byte-identical, verifier 1,063 checks with 0 outside tolerance, test suite passes; see docs/REPRODUCIBILITY.md). |
 | 20 | Claims no broader than evidence | **PASS** | The report concludes that the gate claim is not supported; no profitability, deployability or real-market claims are made. |
 
 ## Reproduction, CI and repository
 
-- Fast pipeline (`make reproduce-paper-fast`): **NOT RUN**
-- Clean-clone full reproduction (`make reproduce-paper`): **NOT RUN**. 
-- Hardware / runtime: —
-- CI: **NOT RUN**. 
-- Push: **NOT PUSHED**. 
+- Fast pipeline (`make reproduce-paper-fast`): **PASS**
+- Clean-clone full reproduction (`make reproduce-paper`): **PASS**. Clean clone, 76.5 min wall on 14 cores: 150/150 identical PPO weights, authoritative.json byte-identical, verifier 1,063 checks with 0 outside tolerance, test suite passes; see docs/REPRODUCIBILITY.md
+- Hardware / runtime: Apple M4 Pro, 14 CPU cores, 48 GB RAM, macOS (Darwin 25.6.0); Python 3.12.14, torch 2.14.1, numpy 2.5.3, SB3 2.9.0; CPU only
+- CI: **NOT RUN (remote)**. Not pushed, so GitHub Actions has not run. Every CI step passes locally: ruff, pytest, lock check, reduced pipeline.
+- Push: **NOT PUSHED**. Withheld per instruction: push only after the scientific gate passes; the gate is BLOCKED on categories 7 and 8.
 - Provenance / license: upstream has no license and is not redistributed; new code is MIT (`PROVENANCE.md`, `LICENSE`).

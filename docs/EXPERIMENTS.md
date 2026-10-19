@@ -43,7 +43,7 @@ $ execshift inspect --claim H4
   "computed_by": "adexec/analysis.py::h45 -> compare(RCG, RL, MIXTURE_WEIGHTS)",
   "decision_rule": "RCG - RL significant and below -0.25 bp (pre-registered SESOI)",
   "data": "TEST split (tag 33), 10 replicates x 4,000 ID + 12 x 1,000 shifted episodes; ...",
-  "prereg_sha256": "2abf320f...", "results_commit": "389d866c..." }
+  "prereg_sha256": "2abf320f...", "results_commit": "0e7f68c3..." }
 ```
 
 ## 2. Post-study experiments

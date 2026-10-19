@@ -15,8 +15,8 @@ from adexec.pipeline.verify import compare
 from adexec.policies import TWAP, Adaptive, AlmgrenChriss
 from adexec.sim import episode_rngs, generate_market, rollout
 
-# SHA-256 of the committed study artifacts at the confirmatory run (commit 389d866) and the
-# lock (f84f3b3). A same-platform `make reproduce-paper` regenerates these byte for byte.
+# SHA-256 of the committed study artifacts at the confirmatory run (commit 0e7f68c) and the
+# lock (23ac727). A same-platform `make reproduce-paper` regenerates these byte for byte.
 # If one changes, either a historical result was modified (not allowed) or a cross-platform
 # reproduction overwrote it (compare with `execshift reproduce --verify` instead).
 HISTORICAL = {

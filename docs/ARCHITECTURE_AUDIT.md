@@ -1,6 +1,6 @@
 # Architecture audit (Phase 0, pre-refactor)
 
-*Written 2026-10-03, before any code was changed, against commit `5c08c6e`. This document
+*Written 2026-10-03, before any code was changed, against commit `5f42983`. This document
 records the repository as it was found. The refactor that followed is described in
 [`ARCHITECTURE.md`](ARCHITECTURE.md); this audit is kept unchanged as the "before" picture.*
 
@@ -177,8 +177,8 @@ These do not change any historical number. Following the brief, they are recorde
   against, which makes H1 harder to pass, not easier. It is still a documentation defect in
   a frozen document.
 - **S2. Git history cannot independently corroborate the pre-lock timeline.** The whole
-  development history was committed in one commit (`234759f`), 7 seconds before the lock
-  commit (`f84f3b3`). The order in the pre-registration timeline (shift suite frozen before
+  development history was committed in one commit (`489371b`), 7 seconds before the lock
+  commit (`23ac727`). The order in the pre-registration timeline (shift suite frozen before
   RL training, development on validation only) rests on the authors' account and on the
   test-access log. The log is append-only by convention but not tamper-evident: it is
   written by the same code it audits. The *test* split's integrity is better supported. It
@@ -235,7 +235,7 @@ every lock check, or force a re-lock. A re-lock is a protocol deviation.
 ## 10. Addendum: second-pass forensics of the uncommitted refactor (2026-10-03)
 
 *Added in a second session, which started from an uncommitted working tree on top of
-`17e688d`. Sections 0-9 above are unchanged.*
+`bb676e6`. Sections 0-9 above are unchanged.*
 
 **State found.** `git status` showed a refactor partway through, following §8:
 

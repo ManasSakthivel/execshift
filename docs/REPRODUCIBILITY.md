@@ -159,7 +159,7 @@ transient-impact gate). No number or result file changed.
 
 ## 11. Fresh-machine walkthrough (verified 2026-10-19)
 
-These commands were run in a new clone of `main` (commit `0f4141b`) on macOS arm64. The
+These commands were run in a new clone of `main` (commit `801a170`) on macOS arm64. The
 timings are from that run.
 
 ```bash

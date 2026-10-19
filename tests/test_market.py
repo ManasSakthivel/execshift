@@ -24,7 +24,7 @@ from adexec.sim import rollout
 
 
 def _study_condition_params(cond, impact_model, latency_s=None):
-    """The rule from the pre-refactor runner (adexec/experiment.py at commit 17e688d)."""
+    """The rule from the pre-refactor runner (adexec/experiment.py at commit bb676e6)."""
     p = replace(CONDITION_BY_NAME[cond].params, impact_model=impact_model)
     if latency_s is not None and CONDITION_BY_NAME[cond].family != "LATENCY":
         p = replace(p, latency_s=latency_s)

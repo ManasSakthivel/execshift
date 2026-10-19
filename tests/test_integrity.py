@@ -195,3 +195,13 @@ class TestAuthoritativeResults:
         readme = (ROOT / "README.md").read_text()
         for s in headline_numbers(self.a):
             assert s in readme, f"README is missing / has stale headline value: {s}"
+
+    @pytest.mark.parametrize("doc", ["README.md", "docs/RESULTS.md", "docs/FAQ.md"])
+    def test_hand_written_docs_quote_only_generated_intervals(self, doc):
+        # every "est [lo, hi]" in a hand-written doc must appear verbatim in the generated tables
+        tables = (RESULTS / "tables.md").read_text()
+        quoted = re.findall(r"[-+]?\d+\.\d+ \[[-+]?\d+\.\d+, [-+]?\d+\.\d+\]",
+                            (ROOT / doc).read_text())
+        assert quoted, f"{doc} quotes no intervals; is the pattern still right?"
+        stale = [q for q in quoted if q not in tables]
+        assert not stale, f"{doc} quotes intervals not in results/tables.md: {stale}"

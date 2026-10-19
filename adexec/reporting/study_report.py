@@ -197,7 +197,9 @@ def render_report(a: dict) -> str:
     w("")
     w(f"- Under linear (Almgren-Chriss) impact, RL fails more often. The gate then helps "
       f"materially ({f['h4_im']['linear'][0]} bp), but a simple rule gate does as well.")
-    w("- Under transient impact the gate never acts, and H3 fails.")
+    fb_tr = a["impact_models"]["transient"]["table"]["RCG"]["fallback_rate"]
+    w(f"- Under transient impact the gate almost never acts (at most "
+      f"{max(fb_tr.values()):.1%} of orders in any condition), and H3 fails.")
     w("")
     w("Latency changes do not alter any conclusion.")
     w("")

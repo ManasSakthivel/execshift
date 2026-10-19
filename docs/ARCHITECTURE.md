@@ -11,7 +11,7 @@ would change every locked path and count as a protocol deviation.
 
 Ten files are hash-locked by `research/prereg.lock`:
 
-```
+```text
 research/PREREGISTRATION.md
 adexec/config.py  sim.py  policies.py  rl.py  features.py  gates.py  stats.py  analysis.py  tuning.py
 ```
@@ -30,7 +30,7 @@ historical result artifact.
 
 ## 2. Package map
 
-```
+```text
 adexec/
 ├── config.py sim.py policies.py rl.py features.py      FROZEN core (pre-registered study)
 │   gates.py stats.py analysis.py tuning.py
@@ -60,7 +60,7 @@ configs/             example experiment configs; machine-readable study design (
 
 Arrows point from the importer to the module it imports. There are no cycles.
 
-```
+```text
                        ┌──────────────── frozen core ────────────────┐
                        │ config → sim → policies → rl                 │
                        │            └→ features → gates → analysis ← stats
@@ -115,7 +115,7 @@ Optional diagnostics (the gate's `fallback_rate`) are read with `getattr`.
 
 ## 5. Data flow
 
-```
+```text
 SeedSequence([tag, condition_index, (seed,) episode])
    tags: 11 train · 22 val · 33 TEST (guarded) · 44 RL training · 55 sim validation
          66 post-study benchmarks · RL-training streams ≥ 50,000 for post-study training
@@ -137,7 +137,7 @@ numbers.
 
 ## 6. Training flow
 
-```
+```text
 study (frozen):  pipeline.training ─► rl.train_member(r, j, impact) × 150 ─► models/
                  results/rl_manifest.json (policy.pth SHA-256 per member)
 post-study:      execshift train --config X.toml ─► agents.training.train_from_config
@@ -147,7 +147,7 @@ post-study:      execshift train --config X.toml ─► agents.training.train_fr
 
 ## 7. Evaluation flow
 
-```
+```text
 study:      pipeline.validation / confirmatory ─► pipeline.evaluation.evaluate
               study_policies() (one declaration of the policy set) ─► evaluation.engine
               + features.gate_features ─► results/raw/{val,test}_*.pkl
@@ -163,13 +163,13 @@ two agree, which turns an implicit shortcut into a tested property.
 
 ## 8. Artifact flow
 
-```
+```text
 results/authoritative.json ─┬─► pipeline.figure_data (+ results/raw) ─► results/figure_data.json
                             ├─► reporting.study_figures ─► figures/fig2..fig10
                             ├─► pipeline.documents ─► docs/FINAL_RESEARCH_REPORT.md, results/tables.md,
                             │                          FINAL_STANFORD_READINESS_REPORT.md, ...
                             └─► reporting.supplementary (+ results/raw, once)
-                                   ─► results/post_study/supplementary_data.json ─► figures/supplementary/S1..S6
+                                   ─► results/post_study/supplementary_data.json ─► figures/supplementary/S1..S7
 runs/<id>/results.json ─► reporting.benchmark_figures / benchmark_report
 ```
 
@@ -200,3 +200,76 @@ and evaluation worker.
 Changing the simulator's dynamics, the 12 shift definitions, the gates or the
 pre-registered analysis means changing frozen files. That is a new study with a new
 pre-registration, not an extension.
+
+## 11. The confirmatory run, step by step
+
+This is the only code path that touches the test split (`adexec/pipeline/confirmatory.py`).
+
+```mermaid
+sequenceDiagram
+    participant C as pipeline.confirmatory
+    participant G as guard
+    participant E as pipeline.evaluation
+    participant W as worker (one per replicate)
+    participant A as analysis (frozen)
+    C->>G: check_lock()
+    G-->>C: lock (raises ContaminationError if any frozen byte changed)
+    C->>C: set ADEXEC_CONFIRMATORY=1
+    loop sqrt, linear and transient impact, then sqrt at 0 / 1 / 5 s latency
+        C->>E: evaluate("test", impact, 13 conditions)
+        E->>W: _eval_replicate × 10 (process pool, results in submission order)
+        W->>G: split_rngs("test", condition, n)
+        G->>G: check_lock() and append to results/test_access_log.jsonl
+        W-->>E: IS, IS_cv and gate features for every policy
+        E-->>C: results/raw/test_<impact>[_lat<s>].pkl
+    end
+    C->>A: analyze(val_<impact>.pkl, test_<impact>.pkl)
+    A-->>C: H1-H5 statistics, gate results
+    C->>C: write results/authoritative.json
+```
+
+Gate fitting happens inside `analysis` on the validation pickles. The test pickles are used
+only to score already-fitted gates.
+
+## 12. Configuration management
+
+There are two kinds of configuration, deliberately kept apart.
+
+- **Study configuration is code.** The 13 conditions, split sizes, seeds, replicate counts,
+  impact models and the SESOI live in the frozen `adexec/config.py` and `adexec/analysis.py`.
+  They are covered by the lock, so changing one is a protocol deviation, not a settings
+  change. `configs/study/preregistered.json` is a machine-readable copy for inspection, and
+  a test checks that it agrees with the code. It is not an input.
+- **Post-study experiments are TOML** (`configs/examples/*.toml`), parsed and validated by
+  `experiments/config.py`. Unknown keys, unknown conditions or impact models, fewer than two
+  episodes, a "pre-registered" label, or a practical threshold other than 0.25 bp without a
+  `threshold_source` all raise `ConfigError`. Each config gets a content hash, which is
+  recorded in the run manifest.
+
+## 13. Failure behaviour
+
+| Situation | Behaviour |
+|---|---|
+| A frozen file or the pre-registration changed | `guard.check_lock` raises `ContaminationError`. No test episode is generated. |
+| Test split requested outside the confirmatory run | `guard.split_rngs` raises `ContaminationError`. A static test also rejects any new module that requests it. |
+| Invalid experiment config | `ConfigError` with the offending key and the allowed values. The CLI prints it and exits with status 1. |
+| Unknown or ambiguous run id | `RunNotFoundError`, exit status 1 |
+| Run directory already exists | `FileExistsError`. Runs are never overwritten. |
+| PPO checkpoints missing in a benchmark | the policy is skipped and listed under `skipped` in the results. `--strict` makes this an error. The reference policy is never skipped. |
+| `results/raw/` missing for S4-S7 | `make supplementary` draws S1-S3 and prints that S4-S7 were skipped |
+| Reproduced results outside tolerance | `execshift reproduce --verify` lists the failures and exits with status 1. `--strict` also fails on any differing numeric leaf. |
+| CLI misuse | argparse usage message, exit status 2 |
+
+Stages do not catch exceptions to continue on partial data. A failed stage stops the
+pipeline.
+
+## 14. Design decisions and trade-offs
+
+| Decision | Benefit | Cost |
+|---|---|---|
+| Freeze the study core and wrap it, rather than refactor it | the confirmatory results stay tied to locked, hashed code | the frozen modules keep their original style, are excluded from mypy and formatting, and some logic is reached through adapters |
+| Common random numbers: markets depend only on seeds | paired differences and per-episode regret are exact, with no extra simulation | episodes cannot react to the trader beyond the impact model |
+| Gated cost computed analytically in the study | one rollout per policy, not per gate | needed a separate step-by-step `GatedPolicy` and a test that the two agree |
+| Raw per-episode outputs as git-ignored pickles | fast to write and read | about 340 MB of local state. Pickle is unsafe for untrusted files, so load only files this pipeline produced. |
+| Process pools that return in submission order | the output does not depend on the worker count | per-replicate parallelism only |
+| Single-threaded torch | bit-for-bit identical PPO weights on one platform | slower training |

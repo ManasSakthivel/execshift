@@ -27,7 +27,7 @@ Raw uncertainty signals do worse. Ensemble disagreement does not predict regret 
 **Result 5 (H6: FAIL).** The gating conclusions do **not** survive a change of impact model:
 
 - Under linear (Almgren-Chriss) impact, RL fails more often. The gate then helps materially (-0.608 [-0.753, -0.468] bp), but a simple rule gate does as well.
-- Under transient impact the gate never acts, and H3 fails.
+- Under transient impact the gate almost never acts (at most 0.6% of orders in any condition), and H3 fails.
 
 Latency changes do not alter any conclusion.
 

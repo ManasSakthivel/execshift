@@ -7,6 +7,13 @@ authors:
 version: 1.0.0
 date-released: 2026-10-02
 license: MIT
+abstract: >-
+  A pre-registered synthetic-market study of whether an uncertainty-based gate can decide,
+  at order arrival, when to trust a reinforcement-learning execution policy and when to
+  fall back to TWAP. The central claim was not supported: the gate's score tracks
+  counterfactual regret only weakly (Spearman rho +0.108, AUROC 0.542), and the gate
+  improves on always-RL by -0.013 bp against a pre-registered 0.25 bp threshold. All data
+  are synthetic.
 keywords:
   - optimal execution
   - reinforcement learning

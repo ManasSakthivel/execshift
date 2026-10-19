@@ -28,7 +28,7 @@ automatically, and refuse "pre-registered" labels.
 ```bash
 make install                    # .venv from requirements-lock.txt (Python 3.12) + editable install
 .venv/bin/pip install mypy pre-commit && .venv/bin/pre-commit install   # optional
-make check                      # ruff + pytest (~15 s)
+make check                      # ruff + pytest (under a minute)
 make typecheck                  # mypy on the platform layers
 make cli-smoke                  # CLI end to end into a temporary registry
 ```

@@ -17,10 +17,12 @@ trusted under distribution shift, and when it should fall back to TWAP.**
 > pre-registered 0.25 bp threshold. It barely beats random switching with the same fallback
 > budget (-0.005 bp).
 
-The reason is quantified rather than speculative. A fallback gate can save at most the
-*headroom* RL leaves: the cost it incurs in regimes where it loses to TWAP. Under the primary
-impact model that headroom is only 0.065 bp. In addition, the costliest failure, alpha decay,
-is invisible to every pre-trade observable.
+The reason is quantified rather than speculative. A gate that can only tell market
+conditions apart can save at most the *headroom* RL leaves: the cost it incurs in the regimes
+where it loses to TWAP. Under the primary impact model that headroom is only 0.065 bp. Doing
+better would require spotting harmful orders *within* a regime, and the measured
+within-regime signal is weak. The costliest hidden failure, alpha decay, leaves no trace in
+the pre-trade features the gate sees.
 
 All market data are **synthetic**. Nothing here is evidence of real-market performance.
 
@@ -46,7 +48,7 @@ controls?
 | H2 | RL's edge degrades under natural shift | ≥ 1 of 12 conditions degrades by > SESOI |
 | H3 | The gate's score predicts regret | Spearman ρ CI > 0 and AUROC CI > 0.5 |
 | H4 | The gate beats always-RL (**central claim**) | RCG - RL < -SESOI, significant |
-| H5 | The gate beats blend, rule, matched-random and always-TWAP controls | all four Holm-significant |
+| H5 | The gate beats blend, rule, matched-random and always-TWAP controls | all four differences < 0 and Holm-significant |
 | H6 | Conclusions are robust to impact model and latency | significant comparisons keep sign and significance under linear and transient impact and 0 / 1 / 5 s latency |
 
 ## 4. Pre-registration and scope
@@ -60,8 +62,13 @@ changes, and every test-split access is appended to
 core and never edits it. Everything added after the confirmatory run is labelled
 **POST-STUDY / EXPLORATORY** or **POST-STUDY DESCRIPTIVE**.
 
-Scope: one parametric synthetic market, marketable orders only, a single go/no-go decision
-at order arrival, and TWAP as the only fallback.
+**Scope.** One parametric synthetic market, marketable orders only, a single go/no-go
+decision at order arrival, and TWAP as the only fallback.
+
+**Non-goals.** ExecShift is not a trading system, a backtest on real data, a calibrated model
+of any instrument, or a new gating method. The gating approach is established
+([`NOVELTY_STATEMENT.md`](NOVELTY_STATEMENT.md)). The contribution is a pre-registered
+empirical test of it.
 
 ## 5. System architecture
 
@@ -122,6 +129,12 @@ flowchart TD
   in-distribution information as RL ([`docs/BASELINES.md`](docs/BASELINES.md)).
 - **RL.** PPO with a residual action on the TWAP pace. A 16-configuration search runs on
   validation data only, with no best-run selection ([`docs/RL_TRAINING.md`](docs/RL_TRAINING.md)).
+- **Controls and ablations.** The proposed regret-calibrated gate (RCG) is compared with
+  always-RL, always-TWAP, a per-step RL/TWAP blend (A3), a rule gate on market summaries
+  (A9) and random switching at RCG's own fallback rate (A10). Exploratory ablations gate on
+  one signal at a time (OOD distance, ensemble disagreement, shadow regret). A seen-family
+  variant of RCG and an unachievable per-order oracle bracket the result. Gates are fitted
+  on validation data under leave-one-shift-family-out, so every test shift is unseen.
 - **Statistics.** Common random numbers, a control-variate IS estimator (realised IS as
   sensitivity), crossed bootstrap, Holm correction and effect sizes
   ([`docs/METHODOLOGY.md`](docs/METHODOLOGY.md)).
@@ -162,9 +175,11 @@ Confirmatory test split: 10 RL replicates × 5-member PPO ensembles × 16,000 ep
 
 **Why the negative result is informative.**
 
-1. **A gate is bounded by fallback headroom.** If RL rarely loses to TWAP, even a perfect gate
-   gains little. The condition-level oracle headroom is 0.065 bp (sqrt), 0.788 bp (linear)
-   and 0.011 bp (transient). The realised gate gains track it: 0.013, 0.608 and 0.000 bp. The
+1. **A regime-level gate is bounded by fallback headroom.** If RL rarely loses to TWAP on
+   average in any regime, even a perfect regime-level gate gains little. The headroom is
+   0.065 bp (sqrt), 0.788 bp (linear) and 0.011 bp (transient). An unachievable per-order
+   oracle would gain 0.31 bp under sqrt impact, so the threshold was reachable only by
+   discriminating within regimes. The realised gate gains track it: 0.013, 0.608 and 0.000 bp. The
    value of gating depends on the impact model more than on the gate.
 2. **Uncertainty catches visible shifts.** In a severe liquidity drought, where spreads and
    depth are observable, the gate falls back on 37% of orders.
@@ -175,6 +190,16 @@ Confirmatory test split: 10 RL replicates × 5-member PPO ensembles × 16,000 ep
    where RL is strongest.
 5. **RL carries more tail risk than a tuned heuristic.** In-distribution CVaR95 is 79.1 bp for
    RL versus 64.9 bp for ADAPT, at a practically tied mean.
+
+Every number above is copied from `results/authoritative.json` through `results/tables.md`.
+[`docs/RESULTS.md`](docs/RESULTS.md) gives each result's conditions, metric definition and
+source.
+
+**What is implemented, and what is claimed.** The repository implements, and tests, a
+validated synthetic market, tuned baselines, 150 trained PPO members, the RCG gate with its
+ablations and controls, the locked statistical analysis and a post-study benchmark platform. These are software
+claims. The scientific claims are only the six verdicts above, and they are limited to this
+simulator.
 
 ## 8. Figures
 
@@ -228,8 +253,8 @@ data. Every number derives from fixed seeds.
 
 ```bash
 make install                # .venv from requirements-lock.txt (uses uv if available) + `execshift`
-make check                  # ruff + 258 tests, ~20 s
-make reproduce-paper-fast   # every stage at toy scale, ~2 min; never touches the test split
+make check                  # ruff + 261 tests, under a minute
+make reproduce-paper-fast   # every stage at toy scale, 1-2 min; never touches the test split
 make supplementary          # S1–S7 from committed results (S4–S7 recompute only if results/raw exists)
 make figures report         # study figures, tables and report from committed results
 make reproduce-paper        # full study from scratch: 76.5 min wall on 14 cores (~10 CPU-hours),
@@ -248,6 +273,18 @@ max(0.02 bp, 10% of the CI half-width) with identical decisions. A cross-platfor
 reproduction has **not** been performed. PNG bytes can differ across platforms (font
 rasterisation). Details: [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md).
 
+**Inputs and outputs.** There is no input data: every market is generated from seeds
+(`adexec/config.py`). The main outputs are:
+
+| Output | Contents | Committed |
+|---|---|---|
+| `results/authoritative.json` | every confirmatory statistic, H1-H6 | yes, SHA-pinned |
+| `results/tables.md`, `docs/FINAL_RESEARCH_REPORT.md` | tables and report rendered from it | yes, checked for staleness |
+| `results/test_access_log.jsonl` | one line per test-split access | yes, append-only |
+| `figures/`, `figures/supplementary/` | study and supplementary figures | yes |
+| `models/`, `results/raw/` | PPO checkpoints, per-episode outputs | no (regenerable) |
+| `runs/<id>/` | post-study runs with manifests | no |
+
 Any published number can be traced to its code, data split and seeds:
 
 ```bash
@@ -260,7 +297,7 @@ Post-study benchmarks run on a separate episode stream:
 
 ## 10. Repository structure
 
-```
+```text
 adexec/            Python package
   config.py sim.py policies.py rl.py features.py gates.py stats.py analysis.py tuning.py
                    ← frozen, hash-locked study core
@@ -275,7 +312,7 @@ results/           authoritative results, reference copy, tables, manifests, tes
 figures/           study figures 1–10; supplementary/ S1–S7
 docs/              methodology, architecture, reproducibility, benchmarks, limitations,
                    literature review, final research report
-tests/             258 tests: unit, integration, CLI, integrity, regression
+tests/             261 tests: unit, integration, CLI, integrity, regression
 ```
 
 ## 11. Limitations and threats to validity
@@ -288,8 +325,9 @@ tests/             258 tests: unit, integration, CLI, integrity, regression
   fallback, and a risk-neutral objective.
 - **RL's bounded residual action space** ([¼, 4] × TWAP pace) may itself limit how badly RL
   can lose, and so shrink the headroom. It was not ablated.
-- **Two documentation defects in frozen files** were found by audit. They are recorded, not
-  edited.
+- **Audit findings are recorded, not edited.** These are a stale tuning-grid description in
+  the frozen pre-registration, a pre-lock timeline that git cannot corroborate, and the
+  verifier's coverage.
 
 Full list: [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md). Untested directions:
 [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md). Full write-up:
@@ -297,7 +335,29 @@ Full list: [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md). Untested directions:
 [`NOVELTY_STATEMENT.md`](NOVELTY_STATEMENT.md). The gating *method* is established. The
 contribution is the empirical answer and the benchmark.
 
-## 12. License, citation and provenance
+## 12. Responsible use
+
+ExecShift is research software. It is not investment advice, not a trading system and not
+validated on real markets. Its policies were trained and evaluated only in simulation and
+should not be used to execute real orders.
+
+## 13. Documentation
+
+| Document | Contents |
+|---|---|
+| [`docs/RESULTS.md`](docs/RESULTS.md) | every result with its conditions, metric, source and interpretation |
+| [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) | research methodology: estimators, metrics, statistics, hypotheses, threats to validity |
+| [`research/PREREGISTRATION.md`](research/PREREGISTRATION.md) | the binding, hash-locked protocol |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | components, data flow, configuration, failure behaviour, design trade-offs |
+| [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md) | environment, seeds, commands, expected outputs, troubleshooting |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | contributor workflow, conventions, adding baselines and metrics |
+| [`docs/FAQ.md`](docs/FAQ.md) | short answers to common questions |
+| [`docs/FINAL_RESEARCH_REPORT.md`](docs/FINAL_RESEARCH_REPORT.md) | the full write-up |
+| [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md), [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md) | limitations, audit findings, open directions |
+| [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md), [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) | post-study benchmark platform and experiment configs |
+| [`docs/SIMULATOR_VALIDATION.md`](docs/SIMULATOR_VALIDATION.md), [`docs/BASELINES.md`](docs/BASELINES.md), [`docs/RL_TRAINING.md`](docs/RL_TRAINING.md), [`docs/LITERATURE_REVIEW.md`](docs/LITERATURE_REVIEW.md) | simulator, baselines, RL protocol, related work |
+
+## 14. License, citation and provenance
 
 The code is MIT-licensed ([`LICENSE`](LICENSE)). Citation metadata is in
 [`CITATION.cff`](CITATION.cff). The work is not peer-reviewed and has no DOI.

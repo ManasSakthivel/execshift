@@ -163,3 +163,88 @@ in each condition and replicate, so it isolates *which* orders are gated from *h
 | **POST-STUDY / EXPLORATORY** | new runs on new episodes (benchmarks, new scenarios, new training) | `runs/<id>/` (git-ignored), [`BENCHMARKS.md`](BENCHMARKS.md) |
 
 A post-study result never changes a pre-registered verdict, however it comes out.
+
+## 11. Hypotheses and decision rules
+
+The pre-registration (§3) fixes six hypotheses. A hypothesis is **supported** only if it is
+statistically significant (two-sided, α = 0.05 after Holm within its family) **and** its
+point estimate passes the 0.25 bp SESOI in the hypothesised direction. H3, H5 and H6 have
+their own rules, given below.
+
+| ID | Claim | Rule |
+|---|---|---|
+| H1 | RL beats tuned classical baselines in-distribution | RL - TWAP < -SESOI and RL - AC < -SESOI, both Holm-significant (family of 3, with RL - ADAPT) |
+| H2 | RL's edge degrades under shift | ≥ 1 condition with D_c = (RL - TWAP)_c - (RL - TWAP)_ID > SESOI, Holm over 12 |
+| H3 | The RCG score predicts regret | mean Spearman ρ CI excludes 0 **and** AUROC(regret > 0) CI above 0.5 |
+| H4 | The gate beats always-RL (central claim) | RCG - RL < -SESOI, significant |
+| H5 | The gate beats the strongest controls | RCG - {A3, A9, A10, TWAP} all < 0, Holm over 4 |
+| H6 | The conclusions are robust | every significant primary comparison keeps its sign and significance under linear and transient impact and 0 / 1 / 5 s latency |
+
+Outcomes: H1, H2, H3 and H5 supported; H4 and H6 not supported
+([`RESULTS.md`](RESULTS.md)).
+
+## 12. Precise definitions of the headline quantities
+
+For episode *i* of replicate *r*, with common random numbers across policies:
+
+- **Counterfactual regret** of trusting RL, the H3 target and the RCG training label:
+  `regret_ri = IS_cv,RL(r,i) - IS_cv,TWAP(i)`. Harm means `regret > 0`. The realised-IS
+  version is reported as a secondary target (`analysis.h3`).
+- **Spearman ρ** (H3): `ρ_r = corr(rank(score_r), rank(regret_r))` over the 16,000 pooled
+  test episodes of replicate *r*. The reported value is `(1/10) Σ_r ρ_r` (`scipy.stats.spearmanr`).
+- **AUROC** (H3): `AUROC_r = P(score of a harmful episode > score of a harmless one)`, with
+  ties counted ½, computed by the rank-sum (Mann-Whitney) formula in `stats.auroc` and then
+  averaged over replicates. Figure S7 recomputes it from ROC curves with scikit-learn, and a
+  test checks that the two agree.
+- **Deployment-mixture cost** (H4, H5): `Σ_c w_c · mean_i IS_cv(c, i)` with `w_ID = 0.5` and
+  `w_c = 0.5/12` for each shift.
+- **Gated cost**: `IS_gate(i) = fallback(i) ? IS_TWAP(i) : IS_RL(i)`. The decision uses only
+  features observable at arrival.
+- **Headroom** (descriptive, not pre-registered):
+  `Σ_c w_c · max(0, mean IS_RL(c) - mean IS_TWAP(c))`, the gain of a gate that falls back in
+  exactly the conditions where RL loses on average (`reporting.study_report.headroom`).
+
+## 13. How to read the evidence
+
+| Do not read | as | because |
+|---|---|---|
+| ρ = +0.108 | "uncertainty explains regret" | ρ is a rank correlation over pooled episodes. It is not causal. The pooled value exceeds every within-condition value (at most +0.103), so part of it reflects differences *between* conditions |
+| AUROC 0.542 | "the gate's predicted regret is accurate" | AUROC measures ranking (discrimination), not calibration. Calibration is shown separately in figure 6 |
+| H3 supported | "the gate works" | H3 only requires the CIs to exclude chance. The practical test is H4, which failed |
+| significant H4 (p = 0.0054) | a useful improvement | the effect is about 20× below the pre-declared SESOI |
+| RL beats TWAP | RL is a better execution method | the simulator's alpha signal creates the edge, and a tuned heuristic ties it |
+| any number here | real-market performance | every market is synthetic (§2) |
+| a benchmark or supplementary result | a confirmatory finding | §10: post-study results never change a pre-registered verdict |
+| a working `GatedPolicy` | evidence the method is valid | a tested implementation shows the software computes what it claims, not that the claim is true |
+
+## 14. Threats to validity
+
+- **Construct.** IS against arrival mid is one cost measure. The risk-neutral objective
+  ignores tail risk, on which RL is worse than ADAPT.
+- **Internal.** The development timeline before the lock rests on the authors' account
+  ([`LIMITATIONS.md`](LIMITATIONS.md) §4, S2). The test split itself is protected by the
+  hash-gated guard and the access log. The control-variate estimator uses latent simulator
+  quantities, but only as a label, never as a gate input.
+- **Confounders.** RL's bounded action space ([¼, 4] × TWAP pace) caps how badly RL can lose,
+  which shrinks the headroom. It was not ablated. The impact model changes the answer (H6).
+- **External.** One parametric market, marketable orders only, with no calibration to any
+  instrument.
+- **Statistical.** Ten training replicates is a small sample of the training-seed
+  distribution. The crossed bootstrap includes that factor, but it cannot add replicates.
+
+## 15. Where each headline number comes from
+
+| Number | Artifact and JSON path | Generated by |
+|---|---|---|
+| H1: RL - TWAP = -2.45 bp | `results/authoritative.json` → `primary/H1/comparisons/RL-TWAP` | `analysis.h1` → `stats.crossed_bootstrap`, run by `pipeline/confirmatory.py` |
+| H2: 8 of 12 conditions | `primary/H2/conditions` | `analysis.h2` (difference-in-differences, Holm over 12) |
+| H3: ρ = +0.108, AUROC 0.542 | `primary/H3/scores/RCG/{spearman,auroc_harm}` | `analysis.h3` (per replicate; CI: crossed bootstrap, B = 1,000, seed 7) |
+| H4: -0.013 bp | `primary/H45/H4/comparison` | `analysis.h45` |
+| H5: -0.005 bp vs matched random | `primary/H45/H5/comparisons` | `analysis.h45` (Holm over 4) |
+| H6 per impact model / latency | `impact_models/{linear,transient}`, `latency/*` | the same analysis on each re-run; the H6 verdict itself is derived by `reporting.study_report.verdicts` |
+| Headroom 0.065 / 0.788 / 0.011 bp | derived from `*/table/{RL,FB}/per_condition` | `reporting.study_report.headroom` |
+| Fallback rates | `*/table/RCG/fallback_rate` | `gates.apply_gates` |
+| S7 ROC curves | `results/post_study/supplementary_data.json` → `roc_harm` | `reporting.supplementary.compute_supplementary_data` |
+
+`execshift inspect --claim H1` … `H6` prints the value, JSON pointer, generating function,
+decision rule and commit for each hypothesis.

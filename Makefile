@@ -2,7 +2,7 @@
 #
 #   make reproduce-paper       full paper (76.5 min wall on 14 cores; ~10 CPU-hours)
 #   make reproduce-paper-fast  reduced sanity pipeline (~1-2 min); never touches the test split
-#   make check                 lint + 258 tests (~15 s);  make typecheck  mypy (platform layers)
+#   make check                 lint + 261 tests (under a minute);  make typecheck  mypy (platform layers)
 #
 # The same stages are available as `execshift reproduce --stage <name>` (see docs/EXPERIMENTS.md).
 #

@@ -4,7 +4,7 @@
 
 | Command | What it does | Runtime (Apple M4 Pro, 14 cores) | Touches the test split? |
 |---|---|---|---|
-| `make test` | 258 tests: unit, integration, CLI, integrity, regression (80 of them one static scan per module) | ~15 s | no (reads committed results) |
+| `make test` | 261 tests: unit, integration, CLI, integrity, regression (80 of them one static scan per module) | 20-60 s | no (reads committed results) |
 | `make reproduce-paper-fast` / `execshift reproduce --fast` | every pipeline stage at toy scale; writes only `results/fast/`, `models_fast/` | ~2 min | **no** |
 | `make reproduce-paper` / `execshift reproduce --full --yes` | the whole paper from scratch, then the verifier and the tests | 76.5 min wall, ~593 CPU-min | yes: appends 780 logged accesses |
 | `execshift reproduce --verify [--strict]` | compares `results/authoritative.json` with the committed reference | < 1 s | no |
@@ -110,8 +110,8 @@ on any machine that installs the lock, including the 2-core GitHub runners.
 | nightly, manual | `nightly.yml` | `execshift reproduce --fast` |
 | release, manual | `reproduce.yml` | `make reproduce-paper` (long; a large or self-hosted runner is recommended) |
 
-None of the workflows has run on GitHub yet: the repository has not been pushed. Every step
-passes locally.
+The repository is at <https://github.com/ManasSakthivel/execshift>. CI (`ci.yml`) passes on
+GitHub for every job. `nightly.yml` and `reproduce.yml` have not yet run there.
 
 ## 10. Historical record: clean-clone reproduction (performed 2026-10-02)
 
@@ -152,3 +152,53 @@ working tree: environment, data, models and results were all regenerated.
 - **Test-access log:** a reproduction appends 780 entries to
   `results/test_access_log.jsonl` (one per replicate × condition × configuration). This is
   expected, and is the audit trail working as designed.
+
+Since that record, one sentence of generated prose in `docs/FINAL_RESEARCH_REPORT.md` has
+been corrected ("never acts" became "almost never acts (at most 0.6% of orders)" for the
+transient-impact gate). No number or result file changed.
+
+## 11. Fresh-machine walkthrough (verified 2026-10-19)
+
+These commands were run in a new clone of `main` (commit `0f4141b`) on macOS arm64. The
+timings are from that run.
+
+```bash
+git clone https://github.com/ManasSakthivel/execshift.git && cd execshift
+make install                              # Python 3.12 venv + locked dependencies
+make check                                # 258 passed (pytest 40 s; 57 s with ruff and first imports)
+make reproduce-paper-fast                 # status PASS in 66 s; writes results/fast/, models_fast/
+.venv/bin/execshift inspect --lock        # "pre-registration lock OK ... 10 frozen files"
+.venv/bin/execshift reproduce --verify --strict   # 1063 checked, 0 outside tolerance; 12498/12498 identical
+```
+
+`make install` needs Python 3.12. With `uv` installed, uv provides it. Otherwise
+`python3.12` must be on the `PATH`. Installation time depends on the package cache: it took
+2 s with a warm uv cache, and downloading torch takes longer on a cold one. Afterwards the
+working tree was unchanged (`git status` clean). Two runs of `make reproduce-paper-fast`
+printed identical numbers.
+
+The full study (`make reproduce-paper`) was not re-run on 2026-10-19. Its last full run is
+the 2026-10-02 record in §10.
+
+## 12. Deterministic reproduction vs approximate replication
+
+| Claim | Holds | Evidence |
+|---|---|---|
+| Committed results are internally consistent and match the reference copy | everywhere | `reproduce --verify --strict`, pinned hashes in `make check` |
+| Derived documents and tables regenerate exactly from the committed results | everywhere | CI `execshift report --study && git diff --exit-code` |
+| A full re-run is **byte-identical** | the recorded environment only (macOS arm64, Python 3.12.14, the lock) | §10 |
+| A full re-run on another platform matches **within tolerance**, with identical decisions | expected, **not yet demonstrated** | verifier tolerance max(0.02 bp, 10% of the CI half-width) |
+| Simulator episodes, baseline tuning and statistics are seed-deterministic | wherever NumPy's `SeedSequence` streams match (any platform with the locked NumPy) | `tests/test_reproducibility.py` regression pins |
+
+## 13. Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `No matching distribution found for contourpy==1.4.0` | Python 3.11 or older | use Python 3.12 (`uv venv --python 3.12`) |
+| `make install` cannot find `python3.12` | no `uv` and no `python3.12` | install `uv`, or Python 3.12 |
+| `ContaminationError: ... changed after the pre-registration lock` | a frozen file was edited or reformatted | `git checkout -- <file>` and never reformat frozen files |
+| `test_historical_artifacts_are_unchanged` fails | a result file was overwritten, for example by a full re-run on another platform | `git checkout -- results/`, then compare with `execshift reproduce --verify` |
+| `python -m adexec.reporting.supplementary --recompute` prints "S4-S7 skipped" | `results/raw/` is absent (it is git-ignored) | plain `make supplementary` draws S4-S7 from the committed `results/post_study/supplementary_data.json`. Recomputing that file needs the raw outputs from `make reproduce-paper` |
+| benchmark output lists PPO policies under `skipped` | no checkpoints in `models/` | `make train` (or `execshift train --study`), or use `configs/examples/evaluate_liquidity.toml`, which needs no PPO |
+| `make typecheck` fails with `No module named mypy` | mypy is optional | `.venv/bin/pip install mypy` |
+| PNG figures differ byte-wise after regeneration | font rasterisation differs by platform | expected. Documents, not figures, are checked for staleness |

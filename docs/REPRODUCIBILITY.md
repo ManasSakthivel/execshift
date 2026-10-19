@@ -18,7 +18,7 @@ and `tests/test_reproducibility.py` pins their SHA-256.
 
 ## 1. Environment
 
-- Python **3.12** (recorded: 3.12.14). CI also tests 3.11; byte-identity is claimed only for
+- Python **3.12** (recorded: 3.12.14). The lock pins 3.12-only wheels, so 3.11 is not supported; byte-identity is claimed only for
   the recorded environment.
 - `make install` builds `.venv` with `uv` if present, otherwise with `python3.12 -m venv`, from
   `requirements-lock.txt`, then installs the package editable (`pip install -e . --no-deps`),
@@ -106,7 +106,7 @@ on any machine that installs the lock, including the 2-core GitHub runners.
 
 | Trigger | Workflow | What runs |
 |---|---|---|
-| pull request, push to `main` | `.github/workflows/ci.yml` | ruff, mypy, pytest on 3.11 + 3.12, lock check, strict verify of committed results, generated-document staleness, CLI smoke |
+| pull request, push to `main` | `.github/workflows/ci.yml` | ruff, mypy, pytest on 3.12, lock check, strict verify of committed results, generated-document staleness, CLI smoke |
 | nightly, manual | `nightly.yml` | `execshift reproduce --fast` |
 | release, manual | `reproduce.yml` | `make reproduce-paper` (long; a large or self-hosted runner is recommended) |
 

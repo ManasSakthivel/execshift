@@ -1,6 +1,6 @@
 # Pull-request / push validation: fast (~10 min). Never runs the full reproduction.
 #   lint      ruff + mypy (post-study platform layers)
-#   test      pytest on Python 3.11 and 3.12 (unit, integration, CLI, integrity, regression)
+#   test      pytest on Python 3.12 (unit, integration, CLI, integrity, regression)
 #   integrity pre-registration lock, generated documents up to date, CLI smoke,
 #             committed results verify against the reference
 # Longer runs: nightly.yml (reproduce-paper-fast), reproduce.yml (full paper, manual).
@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]  # requirements-lock.txt pins 3.12-only wheels (e.g. contourpy 1.4.0)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

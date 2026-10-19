@@ -82,5 +82,6 @@ audits.
   second platform.
 - **mypy covers the platform layers only.** The frozen study modules cannot be edited to
   satisfy a type checker without breaking the lock.
-- **Python 3.11 is supported, but the study's environment record is 3.12.14.** CI tests
-  3.11 and 3.12. Byte-identity claims apply only to the recorded environment.
+- **Python 3.12 only.** `requirements-lock.txt` pins wheels that need 3.12 (e.g. contourpy
+  1.4.0), so CI tests 3.12 only. Byte-identity claims apply only to the recorded environment
+  (3.12.14).

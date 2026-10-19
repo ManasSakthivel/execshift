@@ -13,9 +13,9 @@ from dataclasses import dataclass, replace
 import numpy as np
 from scipy import stats
 
-from .config import BINS_PER_DAY, N_STEPS, NOMINAL, SPLIT_TAGS, MarketParams
-from .policies import TWAP
-from .sim import episode_rngs, generate_market, run_policy
+from ..config import BINS_PER_DAY, N_STEPS, NOMINAL, SPLIT_TAGS, MarketParams
+from ..policies import TWAP
+from ..sim import episode_rngs, generate_market, run_policy
 
 LONG = 2000  # bins per long series (~2.6 trading days of 30 s bins)
 

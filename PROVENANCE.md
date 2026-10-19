@@ -58,7 +58,7 @@ evaluation. Paired evaluation is standard practice and not specific to the upstr
 | Component | Files | Status |
 |---|---|---|
 | Synthetic execution simulator: stochastic volatility, Student-t returns, latent alpha with a noisy signal, spread/depth/volume state processes, three impact models (square-root concave, linear AC, transient propagator), latency via a Brownian bridge | `adexec/sim.py`, `adexec/config.py` | new |
-| Stylised-fact validation suite (14 checks per impact model) | `adexec/stylized.py`, `scripts/validate_simulator.py` | new |
+| Stylised-fact validation suite (14 checks per impact model) | `adexec/market/validation.py` (formerly `adexec/stylized.py`), `adexec/pipeline/simulator_validation.py` | new |
 | Classical baselines: TWAP, AC (incl. mirrored back-loading), tuned opportunistic ADAPT, blend | `adexec/policies.py`, `adexec/tuning.py` | new |
 | Batched SB3 `VecEnv`, PPO deep ensembles, control-variate training reward | `adexec/rl.py` | new (uses SB3, MIT) |
 | Gate features (pre-trade summary, Mahalanobis OOD, ensemble disagreement, shadow-regret replay) | `adexec/features.py` | new |

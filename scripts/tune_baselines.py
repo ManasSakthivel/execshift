@@ -1,17 +1,8 @@
-"""Tune AC and ADAPT on the TRAIN split for each impact model -> results/baselines_<im>.json."""
+"""Stage 2: tune AC and ADAPT on the TRAIN split -> results/baselines_<impact>.json.
 
-import argparse
-import json
-from pathlib import Path
+Thin entry point; the implementation is ``adexec.pipeline.baselines``."""
 
-from adexec.config import IMPACT_MODELS
-from adexec.tuning import tune_all
+from adexec.pipeline.baselines import main
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--impact", nargs="+", default=list(IMPACT_MODELS))
-    for im in ap.parse_args().impact:
-        res = tune_all(im)
-        Path("results").mkdir(exist_ok=True)
-        Path(f"results/baselines_{im}.json").write_text(json.dumps(res, indent=1))
-        print(im, "AC kappa", res["AC"]["kappa"], "ADAPT", res["ADAPT"]["weights"])
+    raise SystemExit(main())

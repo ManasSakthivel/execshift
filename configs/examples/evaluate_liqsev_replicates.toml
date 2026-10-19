@@ -1,0 +1,59 @@
+# POST-STUDY / EXPLORATORY: RL training-seed variability under a severe liquidity drought.
+# The standard suites use replicate 0; in LIQ-sev replicate 0 is the most favourable of the
+# ten (study test split: -0.18 bp vs +0.48..+1.72 for the others). This config shows all ten.
+[experiment]
+name = "liqsev-replicates"
+kind = "evaluate"
+description = "All 10 RL replicates vs TWAP in LIQ-sev (and ID for reference)."
+
+[market]
+conditions = ["ID", "LIQ-sev"]
+impact_model = "sqrt"
+
+[[policies]]
+kind = "twap"
+
+[[policies]]
+kind = "ppo"
+replicate = 0
+
+[[policies]]
+kind = "ppo"
+replicate = 1
+
+[[policies]]
+kind = "ppo"
+replicate = 2
+
+[[policies]]
+kind = "ppo"
+replicate = 3
+
+[[policies]]
+kind = "ppo"
+replicate = 4
+
+[[policies]]
+kind = "ppo"
+replicate = 5
+
+[[policies]]
+kind = "ppo"
+replicate = 6
+
+[[policies]]
+kind = "ppo"
+replicate = 7
+
+[[policies]]
+kind = "ppo"
+replicate = 8
+
+[[policies]]
+kind = "ppo"
+replicate = 9
+
+[evaluation]
+n_episodes = 1000
+seeds = [0]
+metrics = ["mean", "std", "cvar95"]

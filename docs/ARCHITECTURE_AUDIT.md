@@ -231,3 +231,47 @@ every lock check, or force a re-lock. A re-lock is a protocol deviation.
 | Test split touched by new code | low | critical | New code never calls `split_rngs("test")`. The static integrity test is extended to the new packages. |
 | Abstraction for its own sake | medium | medium | Each interface must have at least two real implementations or one real consumer (the engine, CLI or benchmarks). Anything else is cut. |
 | Cross-platform nondeterminism read as reproduction failure | medium | medium | The verifier is extended, not loosened. Pre-declared tolerances are unchanged. Platform assumptions are documented. |
+
+## 10. Addendum: second-pass forensics of the uncommitted refactor (2026-10-03)
+
+*Added in a second session, which started from an uncommitted working tree on top of
+`17e688d`. Sections 0-9 above are unchanged.*
+
+**State found.** `git status` showed a refactor partway through, following §8:
+
+| Change | State | Verified |
+|---|---|---|
+| `paths.py`, `interfaces.py` | new, complete | `guard.py` now takes `ROOT` from `paths`; lock entries resolve to the imported package (`guard.frozen_path`) |
+| `market/` (simulator adapter, impact/latency specs, `Scenario`, stream 66; `stylized.py` → `market/validation.py`) | complete | `Scenario.params()` equals the pre-refactor `condition_params` for 13 conditions × 3 impact models × 4 latency settings |
+| `agents/` (TWAP, AC, ADAPT, Blend, PPO, `GatedPolicy`, factory) | complete | sell quantities bit-identical to the frozen classes |
+| `uncertainty/` (ensemble, OOD, shadow, RCG adapters) | complete | scores equal the frozen gate-feature columns |
+| `evaluation/` (engine, metrics, statistics) | complete | engine equals `sim.rollout`; metrics agree with the frozen versions |
+| `pipeline/` (all stages moved out of `scripts/`; `experiment.py` → `pipeline/evaluation.py`) | complete; scripts reduced to thin entry points | regenerated documents, tables and figures byte-identical |
+| `reporting/` (`report*.py`, `plotstyle.py` moved) | complete | report/table staleness tests pass |
+| `benchmarks/`, `cli/`, `experiments/` | **empty directories** | referenced by `interfaces.py` and by the edited `tests/test_integrity.py` (`adexec/benchmarks/runner.py`), but not yet written |
+| tests named in docstrings (`test_agents.py`, `test_market.py`, ...) | **missing** | the docstrings cited tests that did not exist |
+| `pipeline/verify.py` | post-study hardening: list-length mismatches fail; supplementary coverage report; `--strict` | stricter only; the pre-declared tolerance is unchanged |
+
+At session start the test suite had **1 failure**: `test_static_scan_covers_the_codebase`
+expected `adexec/benchmarks/runner.py`. The lock check passed, and `results/` and `research/`
+were byte-identical to `HEAD`.
+
+**What the second session did.** It kept all of the above and built on it: the missing
+`experiments/`, `benchmarks/` and `cli/` layers, the missing tests, the supplementary
+figures, CI and documentation. Nothing was reset, stashed or deleted. Two small additive
+edits were made to existing refactor files: `agents/` gained an `ensemble_size` option and a
+post-study trainer, and `benchmarks/runner.py` reads the gate diagnostic without
+`isinstance`. One bug was found and fixed by type checking (`execshift report --study` called
+`main` on a function).
+
+**Additional finding (security / provenance).** The local repository still has the upstream
+clone's `master` branch and the `upstream` remote. They contain the unlicensed upstream code,
+including an Alpaca trading adapter that takes `api_key` / `secret_key` parameters (no actual
+keys). None of it is reachable from `main`. Pushing with `git push --all`, or pushing
+`master`, would publish unlicensed third-party code. Push `main` only. Deleting the branch
+and the remote is left to the owner.
+
+Audit items resolved by the refactor: D1-D9, D10 (verifier hardened), D12 (CI split into
+PR / nightly / release), D13 (tests added). Still open: D11 (pickled raw outputs, local
+only) and D14 (dev tools pinned in the runtime lock; changing the lock file would rewrite
+the study's environment record).

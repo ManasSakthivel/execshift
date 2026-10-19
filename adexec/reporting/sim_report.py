@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .config import NOMINAL
+from ..config import NOMINAL
 
 SIM_PARAMS = [
     ("Decision interval / horizon", "30 s / 60 steps (30 min)", "Typical intraday execution slice"),

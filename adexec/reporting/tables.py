@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .config import MIXTURE_WEIGHTS
+from ..config import MIXTURE_WEIGHTS
 
 POL = {"RL": "RL (5-member ensemble)", "RL1": "RL (single member)", "FB": "TWAP",
        "AC": "AC (tuned)", "ADAPT": "ADAPT (tuned)", "RCG": "RCG (proposed gate)",

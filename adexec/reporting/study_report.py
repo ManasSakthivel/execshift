@@ -7,11 +7,11 @@ from __future__ import annotations
 
 import json
 
-from .config import MIXTURE_WEIGHTS
-from .guard import ROOT
-from .report_tables import ci
+from ..config import MIXTURE_WEIGHTS
+from ..paths import RESULTS
+from .tables import ci
 
-RES = ROOT / "results"
+RES = RESULTS
 
 
 def _load(name, default=None):

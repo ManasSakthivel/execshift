@@ -1,0 +1,33 @@
+# Nightly / manual: the reduced end-to-end pipeline (make reproduce-paper-fast).
+# Trains 10 tiny PPO members, evaluates on validation data only; never touches the test
+# split and never writes to results/ outside results/fast/.
+name: Nightly reproduce-paper-fast
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  reproduce-fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+          grep -v '^torch==' requirements-lock.txt > req-ci.txt
+          pip install -r req-ci.txt
+          pip install -e . --no-deps
+      - name: execshift reproduce --fast
+        run: execshift reproduce --fast
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reproduce-fast-summary
+          path: results/fast/summary.json

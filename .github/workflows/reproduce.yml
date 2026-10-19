@@ -1,0 +1,35 @@
+# Release / manual: the full paper (make reproduce-paper), then the pre-declared verifier.
+# ~76 min on 14 cores; on a 4-core hosted runner expect 4-5 h (close to the 6 h job limit),
+# so a larger or self-hosted runner is recommended. Linux results are NOT expected to be
+# byte-identical to the committed macOS/arm64 results (see docs/REPRODUCIBILITY.md); the
+# verifier's pre-declared tolerances decide pass/fail.
+name: Full reproduction (manual / release)
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: "runs-on label (e.g. ubuntu-latest or a self-hosted label)"
+        default: ubuntu-latest
+  release:
+    types: [published]
+
+jobs:
+  reproduce-paper:
+    runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: make reproduce-paper (builds .venv from requirements-lock.txt; includes verify and tests)
+        run: make reproduce-paper
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reproduction-results
+          path: |
+            results/authoritative.json
+            results/rl_manifest.json
+            results/figure_data.json

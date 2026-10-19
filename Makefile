@@ -1,7 +1,10 @@
 # Reproduction pipeline.  All data are synthetic and generated from seeds.
 #
-#   make reproduce-paper       full paper (~2 h on a 14-core machine; ~9 CPU-hours of PPO)
-#   make reproduce-paper-fast  reduced sanity pipeline (~5-10 min); never touches the test split
+#   make reproduce-paper       full paper (76.5 min wall on 14 cores; ~10 CPU-hours)
+#   make reproduce-paper-fast  reduced sanity pipeline (~1-2 min); never touches the test split
+#   make check                 lint + 258 tests (~15 s);  make typecheck  mypy (platform layers)
+#
+# The same stages are available as `execshift reproduce --stage <name>` (see docs/EXPERIMENTS.md).
 #
 # The confirmatory stage requires research/prereg.lock to match the frozen code; it appends
 # to results/test_access_log.jsonl.  verify compares the regenerated results with the
@@ -12,7 +15,8 @@ PY      ?= .venv/bin/python
 WORKERS ?= $(shell python3 -c "import os; print(max(1, (os.cpu_count() or 2) - 1))")
 
 .PHONY: install validate-sim tune train val confirm figures report verify test lint \
-        reproduce-paper reproduce-paper-fast clean-generated
+        typecheck check cli-smoke supplementary reproduce-paper reproduce-paper-fast \
+        clean-generated
 
 .venv/bin/python:
 	@if command -v uv >/dev/null 2>&1; then \
@@ -57,6 +61,18 @@ test: install
 
 lint: install
 	$(PY) -m ruff check .
+
+typecheck: install             ## mypy on the post-study platform layers (needs `pip install mypy`)
+	$(PY) -m mypy
+
+check: lint test               ## what PR CI runs (plus typecheck)
+
+cli-smoke: install             ## POST-STUDY: CLI end to end into a throw-away registry
+	ADEXEC_RUNS_DIR=$$(mktemp -d) sh -c '$(PY) -m adexec benchmark --suite smoke --quiet && \
+	  $(PY) -m adexec inspect && $(PY) -m adexec inspect --claim H4 >/dev/null'
+
+supplementary: install         ## POST-STUDY descriptive figures S1-S7 (S4-S7 need results/raw)
+	$(PY) -m adexec.reporting.supplementary
 
 clean-generated:
 	rm -rf models results/raw

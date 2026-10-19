@@ -1,0 +1,176 @@
+{
+ "_comment": "Machine-readable description of the PRE-REGISTERED study design, generated from the frozen adexec/config.py, rl.py, stats.py and analysis.py. Read-only: it documents the study and is never used to run it. tests/test_experiments.py checks it still matches the frozen code.",
+ "conditions": [
+  {
+   "name": "ID",
+   "family": "ID",
+   "severity": "none"
+  },
+  {
+   "name": "VOL-mod",
+   "family": "VOL",
+   "severity": "moderate"
+  },
+  {
+   "name": "VOL-sev",
+   "family": "VOL",
+   "severity": "severe"
+  },
+  {
+   "name": "LIQ-mod",
+   "family": "LIQ",
+   "severity": "moderate"
+  },
+  {
+   "name": "LIQ-sev",
+   "family": "LIQ",
+   "severity": "severe"
+  },
+  {
+   "name": "ALPHA-mod",
+   "family": "ALPHA",
+   "severity": "moderate"
+  },
+  {
+   "name": "ALPHA-sev",
+   "family": "ALPHA",
+   "severity": "severe"
+  },
+  {
+   "name": "IMPACT-mod",
+   "family": "IMPACT",
+   "severity": "moderate"
+  },
+  {
+   "name": "IMPACT-sev",
+   "family": "IMPACT",
+   "severity": "severe"
+  },
+  {
+   "name": "LAT-mod",
+   "family": "LATENCY",
+   "severity": "moderate"
+  },
+  {
+   "name": "LAT-sev",
+   "family": "LATENCY",
+   "severity": "severe"
+  },
+  {
+   "name": "SIZE-mod",
+   "family": "SIZE",
+   "severity": "moderate"
+  },
+  {
+   "name": "SIZE-sev",
+   "family": "SIZE",
+   "severity": "severe"
+  }
+ ],
+ "mixture_weights": {
+  "ID": 0.5,
+  "VOL-mod": 0.041666666666666664,
+  "VOL-sev": 0.041666666666666664,
+  "LIQ-mod": 0.041666666666666664,
+  "LIQ-sev": 0.041666666666666664,
+  "ALPHA-mod": 0.041666666666666664,
+  "ALPHA-sev": 0.041666666666666664,
+  "IMPACT-mod": 0.041666666666666664,
+  "IMPACT-sev": 0.041666666666666664,
+  "LAT-mod": 0.041666666666666664,
+  "LAT-sev": 0.041666666666666664,
+  "SIZE-mod": 0.041666666666666664,
+  "SIZE-sev": 0.041666666666666664
+ },
+ "split_tags": {
+  "train": 11,
+  "val": 22,
+  "test": 33,
+  "rltrain": 44,
+  "simval": 55
+ },
+ "episodes": {
+  "train": {
+   "ID": 4000
+  },
+  "val": {
+   "ID": 2000,
+   "VOL-mod": 500,
+   "VOL-sev": 500,
+   "LIQ-mod": 500,
+   "LIQ-sev": 500,
+   "ALPHA-mod": 500,
+   "ALPHA-sev": 500,
+   "IMPACT-mod": 500,
+   "IMPACT-sev": 500,
+   "LAT-mod": 500,
+   "LAT-sev": 500,
+   "SIZE-mod": 500,
+   "SIZE-sev": 500
+  },
+  "test": {
+   "ID": 4000,
+   "VOL-mod": 1000,
+   "VOL-sev": 1000,
+   "LIQ-mod": 1000,
+   "LIQ-sev": 1000,
+   "ALPHA-mod": 1000,
+   "ALPHA-sev": 1000,
+   "IMPACT-mod": 1000,
+   "IMPACT-sev": 1000,
+   "LAT-mod": 1000,
+   "LAT-sev": 1000,
+   "SIZE-mod": 1000,
+   "SIZE-sev": 1000
+  }
+ },
+ "replicates": 10,
+ "ensemble_size": 5,
+ "impact_models": [
+  "sqrt",
+  "linear",
+  "transient"
+ ],
+ "primary_impact": "sqrt",
+ "latency_grid_s": [
+  0.0,
+  1.0,
+  5.0
+ ],
+ "alpha": 0.05,
+ "sesoi_bp": 0.25,
+ "bootstrap": {
+  "B": 10000,
+  "seed": 20261001,
+  "design": "crossed replicate x episode"
+ },
+ "ppo": {
+  "total_steps": 20000000,
+  "n_steps": 120,
+  "batch_size": 4096,
+  "n_epochs": 5,
+  "learning_rate": 0.0001,
+  "gamma": 1.0,
+  "gae_lambda": 0.98,
+  "clip_range": 0.2,
+  "ent_coef": 0.0,
+  "vf_coef": 0.5,
+  "max_grad_norm": 0.5,
+  "net_arch": {
+   "pi": [
+    64,
+    64
+   ],
+   "vf": [
+    64,
+    64
+   ]
+  },
+  "log_std_init": -1.0
+ },
+ "seeds": {
+  "episode": "SeedSequence([split_tag, condition_index, episode])",
+  "ppo_member": "replicate * 5 + member",
+  "ppo_stream": "rltrain tag 44, stream = impact_index * 1000 + member seed"
+ }
+}

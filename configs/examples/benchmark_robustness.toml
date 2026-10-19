@@ -1,0 +1,10 @@
+# A named suite with overrides, as a config file (equivalent to
+# `execshift benchmark --suite robustness --episodes 200`).
+[experiment]
+name = "robustness-small"
+kind = "benchmark"
+
+[benchmark]
+suite = "robustness"
+n_episodes = 200
+seeds = [0]

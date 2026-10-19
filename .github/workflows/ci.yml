@@ -1,3 +1,9 @@
+# Pull-request / push validation: fast (~10 min). Never runs the full reproduction.
+#   lint      ruff + mypy (post-study platform layers)
+#   test      pytest on Python 3.11 and 3.12 (unit, integration, CLI, integrity, regression)
+#   integrity pre-registration lock, generated documents up to date, CLI smoke,
+#             committed results verify against the reference
+# Longer runs: nightly.yml (reproduce-paper-fast), reproduce.yml (full paper, manual).
 name: CI
 
 on:
@@ -5,18 +11,45 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
+      - name: Install (CPU-only PyTorch, pinned versions)
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+          grep -v '^torch==' requirements-lock.txt > req-ci.txt
+          pip install -r req-ci.txt mypy
+          pip install -e . --no-deps
+      - name: ruff
+        run: ruff check .
+      - name: mypy (platform layers; frozen study modules excluded)
+        run: mypy
 
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
       - name: Install (CPU-only PyTorch, pinned versions)
         run: |
           python -m pip install --upgrade pip
@@ -24,17 +57,38 @@ jobs:
           grep -v '^torch==' requirements-lock.txt > req-ci.txt
           pip install -r req-ci.txt
           pip install -e . --no-deps
+      - name: Unit, integration, CLI, integrity and regression tests
+        run: pytest -ra
 
-      - name: Lint
-        run: ruff check .
-
-      - name: Unit and scientific-integrity tests
-        run: pytest
-
+  integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+          grep -v '^torch==' requirements-lock.txt > req-ci.txt
+          pip install -r req-ci.txt
+          pip install -e . --no-deps
       - name: Pre-registration lock matches frozen code
-        run: python -c "from adexec.guard import check_lock; check_lock(); print('lock OK')"
-
-      - name: Reduced end-to-end pipeline (make reproduce-paper-fast)
+        run: execshift inspect --lock
+      - name: Committed results verify against the reference (strict)
+        run: execshift reproduce --verify --strict
+      - name: Generated documents are up to date
+        run: |
+          execshift report --study
+          git diff --exit-code -- docs results README.md FINAL_STANFORD_READINESS_REPORT.md
+      - name: CLI smoke (POST-STUDY benchmark, provenance)
         env:
-          FAST_STEPS: "200000"
-        run: python scripts/reproduce_fast.py
+          ADEXEC_RUNS_DIR: ${{ runner.temp }}/runs
+        run: |
+          execshift benchmark --suite smoke --quiet
+          execshift inspect
+          execshift inspect --claim H4
+          execshift evaluate --config configs/examples/evaluate_liquidity.toml --episodes 200 --quiet

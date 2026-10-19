@@ -24,10 +24,15 @@ ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
 AUTH = RESULTS / "authoritative.json"
 
-# modules allowed to request the test split, and only from the confirmatory script
-TEST_SPLIT_ALLOWED = {"scripts/run_confirmatory.py", "adexec/guard.py", "adexec/experiment.py"}
-DEV_CODE = ["adexec/tuning.py", "adexec/rl.py", "adexec/gates.py", "adexec/features.py",
-            "scripts/train_rl.py", "scripts/tune_baselines.py", "scripts/run_validation.py"]
+# The only modules allowed to name the test split: the frozen config that defines it (split
+# tag and episode counts), the guard that refuses it, and the confirmatory stage that
+# requests it.  Every other module in the package and in scripts/
+# (including all post-study platform code) is checked statically.
+TEST_SPLIT_ALLOWED = {"adexec/config.py", "adexec/guard.py", "adexec/pipeline/confirmatory.py"}
+DEV_CODE = sorted(
+    str(p.relative_to(ROOT)) for p in [*(ROOT / "adexec").rglob("*.py"),
+                                       *(ROOT / "scripts").glob("*.py")]
+    if str(p.relative_to(ROOT)) not in TEST_SPLIT_ALLOWED)
 
 
 def _calls_test_split(path: Path) -> bool:
@@ -36,6 +41,11 @@ def _calls_test_split(path: Path) -> bool:
         if isinstance(node, ast.Constant) and node.value == "test":
             return True
     return False
+
+
+def test_static_scan_covers_the_codebase():
+    assert len(DEV_CODE) > 40  # guards against the glob silently matching nothing
+    assert "adexec/tuning.py" in DEV_CODE and "adexec/benchmarks/runner.py" in DEV_CODE
 
 
 @pytest.mark.parametrize("rel", DEV_CODE)
@@ -170,17 +180,17 @@ class TestAuthoritativeResults:
             assert rec["time"] >= lock["locked_at"]
 
     def test_report_and_tables_match_authoritative_numbers(self):
-        from adexec.report import render_report
+        from adexec.reporting.study_report import render_report
 
         report = (ROOT / "docs/FINAL_RESEARCH_REPORT.md").read_text()
         assert report == render_report(self.a), "report is stale: run `make report`"
         tables = ROOT / "results" / "tables.md"
-        from adexec.report_tables import render_tables
+        from adexec.reporting.tables import render_tables
 
         assert tables.read_text() == render_tables(self.a), "tables are stale"
 
     def test_readme_headline_numbers_match(self):
-        from adexec.report import headline_numbers
+        from adexec.reporting.study_report import headline_numbers
 
         readme = (ROOT / "README.md").read_text()
         for s in headline_numbers(self.a):

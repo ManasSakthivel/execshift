@@ -1,0 +1,19 @@
+# pre-commit install   (then hooks run on every commit)
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: ruff check --force-exclude
+        language: system
+        types: [python]
+      - id: prereg-lock
+        name: pre-registration lock unchanged
+        entry: python -c "from adexec.guard import check_lock; check_lock()"
+        language: system
+        pass_filenames: false
+        files: ^(research/|adexec/(config|sim|policies|rl|features|gates|stats|analysis|tuning)\.py)
+      - id: no-large-files
+        name: no files over 1 MB
+        entry: python -c "import sys,os; big=[f for f in sys.argv[1:] if os.path.getsize(f)>1_000_000]; print(*big); sys.exit(bool(big))"
+        language: system

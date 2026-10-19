@@ -24,9 +24,9 @@ from pathlib import Path
 import numpy as np
 
 from .config import CONDITIONS, SPLIT_TAGS
+from .paths import ROOT
 from .sim import episode_rngs
 
-ROOT = Path(__file__).resolve().parent.parent
 LOCK = ROOT / "research" / "prereg.lock"
 PREREG = ROOT / "research" / "PREREGISTRATION.md"
 CONFIG = ROOT / "adexec" / "config.py"
@@ -35,6 +35,16 @@ FROZEN = ("research/PREREGISTRATION.md", "adexec/config.py", "adexec/sim.py",
           "adexec/policies.py", "adexec/rl.py", "adexec/features.py", "adexec/gates.py",
           "adexec/stats.py", "adexec/analysis.py", "adexec/tuning.py")
 COND_INDEX = {c.name: i for i, c in enumerate(CONDITIONS)}
+PACKAGE_DIR = Path(__file__).resolve().parent
+
+
+def frozen_path(rel: str) -> Path:
+    """Resolve a lock entry.  ``adexec/*`` entries resolve to the *imported* package, so the
+    lock always covers the code that actually runs (they differ from the repository copy
+    only for a non-editable install)."""
+    if rel.startswith("adexec/"):
+        return PACKAGE_DIR / rel.removeprefix("adexec/")
+    return ROOT / rel
 
 
 class ContaminationError(RuntimeError):
@@ -53,7 +63,7 @@ def check_lock() -> dict:
     if sha256(PREREG) != lock["preregistration_sha256"]:
         raise ContaminationError("PREREGISTRATION.md changed after the lock")
     for rel, h in lock["files"].items():
-        if sha256(ROOT / rel) != h:
+        if sha256(frozen_path(rel)) != h:
             raise ContaminationError(f"{rel} changed after the pre-registration lock")
     return lock
 
@@ -61,7 +71,7 @@ def check_lock() -> dict:
 def write_lock(extra: dict | None = None) -> dict:
     lock = {"locked_at": _dt.datetime.now(_dt.UTC).isoformat(),
             "preregistration_sha256": sha256(PREREG),
-            "files": {rel: sha256(ROOT / rel) for rel in FROZEN}, **(extra or {})}
+            "files": {rel: sha256(frozen_path(rel)) for rel in FROZEN}, **(extra or {})}
     LOCK.write_text(json.dumps(lock, indent=1) + "\n")
     return lock
 

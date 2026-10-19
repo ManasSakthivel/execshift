@@ -1,0 +1,28 @@
+# POST-STUDY / EXPLORATORY evaluation: classical baselines under a liquidity drought.
+# Run:  execshift evaluate --config configs/examples/evaluate_liquidity.toml
+[experiment]
+name = "liquidity-classical"
+kind = "evaluate"
+description = "TWAP vs tuned AC vs tuned ADAPT as liquidity dries up (no PPO needed)."
+
+[market]
+conditions = ["ID", "LIQ-mod", "LIQ-sev"]
+impact_model = "sqrt"
+
+[[policies]]
+kind = "twap"
+
+[[policies]]
+kind = "ac"
+tuned = true
+
+[[policies]]
+kind = "adapt"
+tuned = true
+
+[evaluation]
+n_episodes = 1000
+seeds = [0, 1]
+metrics = ["mean", "median", "std", "p95", "cvar95"]
+reference = "TWAP"
+bootstrap_B = 2000

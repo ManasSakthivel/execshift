@@ -2,18 +2,36 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+build/
+dist/
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 .venv/
 venv/
 
-# Regenerable artefacts (hashes recorded in results/rl_manifest.json)
+# Regenerable artefacts (hashes recorded in results/rl_manifest.json / run manifests)
 models/
+models_fast/
 results/raw/
+results/fast/
 scratch/
 
-# Secrets / OS
+# Post-study experiment registry (local runs; each has its own manifest)
+runs/
+
+# Secrets / credentials / local environment (nothing in this project needs any)
 .env
+.env.*
+*.pem
+*.key
+*.p12
+credentials*.json
+secrets*
+
+# OS / editors
 .DS_Store
-models_fast/
-results/fast/
+.idea/
+.vscode/

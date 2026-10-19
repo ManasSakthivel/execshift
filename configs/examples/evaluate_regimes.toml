@@ -1,0 +1,38 @@
+# POST-STUDY / EXPLORATORY: RL vs baselines when several regimes shift at once.
+# Combined shifts were NOT part of the pre-registered suite (it shifts one axis at a time).
+# Needs PPO checkpoints in models/ (make train, or `execshift train --study`).
+[experiment]
+name = "combined-stress"
+kind = "evaluate"
+description = "Stressed volatility + thin liquidity + large orders, simultaneously."
+
+[market]
+conditions = ["ID"]
+impact_model = "sqrt"
+volatility = "stressed"    # = VOL-mod multiplier
+liquidity = "thin"         # = LIQ-mod multipliers
+order_size = "large"       # = SIZE-mod multiplier
+
+[[policies]]
+kind = "twap"
+
+[[policies]]
+kind = "adapt"
+tuned = true
+
+[[policies]]
+kind = "ppo"
+replicate = 0
+
+[[policies]]
+kind = "gated"
+name = "GATE_ood"
+estimator = "ood"
+quantile = 0.95
+primary = { kind = "ppo", replicate = 0 }
+fallback = { kind = "twap" }
+
+[evaluation]
+n_episodes = 2000
+seeds = [0]
+metrics = ["mean", "std", "p95", "cvar95"]
